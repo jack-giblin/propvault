@@ -318,13 +318,11 @@ if bets:
                 <div style="font-size:24px; font-weight:900;">{b.get('Player')}</div>
                 <div style="font-size:18px; font-weight:700; color:{tier_color};">{b.get('Side')}</div>
                 <div style="color:#64748b;">{b.get('Game')}</div>
-
                 <div class="odds-row">
                     <span class="odds-badge">{b.get('Target Odds')}</span>
                     <span style="color:#475569;">Fair (Pinny): {b.get('Fair Odds')}</span>
                 </div>
             </div>
-
             <div style="text-align:right;">
                 <div style="color:{tier_color}; font-size:38px; font-weight:900;">
                     +{b.get('EV %')}%
