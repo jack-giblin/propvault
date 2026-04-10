@@ -12,7 +12,18 @@ MIN_EV = 1.5
 SHARP_BOOK = "pinnacle"
 TARGET_BOOK = "novig"
 SPORTS = ["baseball_mlb", "basketball_nba"]
-MARKETS = ["h2h", "spreads", "totals"]
+MARKETS = ["spreads", "totals"]
+
+PROP_MARKETS = ["player_points", "player_rebounds", "player_assists", "player_threes"]
+
+MARKET_LABELS = {
+    "spreads": "Spread",
+    "totals": "Total",
+    "player_points": "Points",
+    "player_rebounds": "Rebounds",
+    "player_assists": "Assists",
+    "player_threes": "3PT Made"
+}
 
 SPORT_LABELS = {
     "baseball_mlb": "MLB",
