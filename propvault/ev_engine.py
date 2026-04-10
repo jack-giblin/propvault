@@ -128,4 +128,4 @@ def find_ev_bets(api_key: str) -> tuple[list[dict], list[str]]:
             errors.append(f"Notice: {sport} updates pending. ({str(e)})")
 
     all_bets.sort(key=lambda x: x["EV %"], reverse=True)
-    return all_bets[:15], errors
+    return all_bets[:30], errors
