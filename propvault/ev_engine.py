@@ -1,4 +1,5 @@
 import httpx
+import time
 from typing import List, Tuple, Dict
 
 BASE_URL = "https://api.the-odds-api.com/v4"
@@ -13,11 +14,13 @@ MAX_EV_CAP = 15.0
 # THE SPORTS
 SPORTS = ["basketball_nba", "baseball_mlb"]
 
-# THE BATCHES (Reduced to keep the API from choking)
+# THE BATCHES - Separated strictly to prevent one bad market from killing the app
 MARKET_BATCHES = [
     ["spreads", "totals"],
     ["player_points", "player_rebounds", "player_assists"],
-    ["player_threes", "pitcher_strikeouts", "batter_home_runs"]
+    ["player_threes"],
+    ["pitcher_strikeouts"],
+    ["batter_home_runs"]
 ]
 
 MARKET_LABELS = {
@@ -36,11 +39,8 @@ def decimal_to_american(d: float) -> str:
     if d <= 1.001: return "+100"
     return f"+{round((d - 1) * 100)}" if d >= 2 else str(round(-100 / (d - 1)))
 
-def implied_prob(o: float) -> float:
-    return 1 / american_to_decimal(o)
-
 def no_vig_prob(p1: float, p2: float) -> Tuple[float, float]:
-    pa, pb = implied_prob(p1), implied_prob(p2)
+    pa, pb = 1/american_to_decimal(p1), 1/american_to_decimal(p2)
     return pa / (pa + pb), pb / (pa + pb)
 
 def _fmt_side(name: str, pt: float, m_key: str, desc: str = "") -> str:
@@ -54,13 +54,14 @@ def _fmt_side(name: str, pt: float, m_key: str, desc: str = "") -> str:
 def find_ev_bets(api_key: str):
     all_bets = []
     errors = []
-    
-    # Clean the key one last time
     api_key = api_key.strip()
 
     for sport in SPORTS:
         for batch in MARKET_BATCHES:
             try:
+                # Add a tiny delay between batches to respect rate limits
+                time.sleep(0.1)
+                
                 params = {
                     "apiKey": api_key,
                     "regions": "us",
@@ -72,19 +73,15 @@ def find_ev_bets(api_key: str):
                 with httpx.Client(timeout=15) as client:
                     r = client.get(f"{BASE_URL}/sports/{sport}/odds", params=params)
                     
-                    if r.status_code == 401:
-                        errors.append(f"Auth Failed: Check if key '{api_key[:5]}...' is correct.")
-                        return [], errors # Stop early if the key is rejected
+                    # If ONE batch fails with 422, we log it and move to the NEXT batch
+                    if r.status_code == 422:
+                        errors.append(f"Skipping {batch} for {sport}: Markets not yet available.")
+                        continue
                     
-                    if r.status_code == 429:
-                        errors.append("Usage Quota Hit! (Real 429 error)")
-                        return all_bets, errors
-                        
                     r.raise_for_status()
                     events = r.json()
 
                 for event in events:
-                    # Find Pinnacle and Novig bookmakers
                     bms = {bm["key"]: bm for bm in event.get("bookmakers", [])}
                     pin, nov = bms.get(SHARP_BOOK), bms.get(TARGET_BOOK)
                     if not pin or not nov: continue
@@ -95,14 +92,12 @@ def find_ev_bets(api_key: str):
                         if not nov_mkt: continue
 
                         for p_out in pin_mkt["outcomes"]:
-                            # Find matching Novig outcome
                             n_out = next((o for o in nov_mkt["outcomes"] 
                                          if o["name"] == p_out["name"] 
                                          and o.get("point") == p_out.get("point")
                                          and o.get("description") == p_out.get("description")), None)
                             if not n_out: continue
                             
-                            # Find the opposite side to devig Pinnacle
                             opp_p = next((o for o in pin_mkt["outcomes"] 
                                          if o["name"] != p_out["name"] 
                                          and o.get("point") == p_out.get("point")
@@ -123,6 +118,6 @@ def find_ev_bets(api_key: str):
                                     "EV %": round(ev, 2)
                                 })
             except Exception as e:
-                errors.append(f"Engine Error ({sport}): {str(e)}")
+                errors.append(f"Notice: {batch[0]} scan paused.")
 
     return sorted(all_bets, key=lambda x: x["EV %"], reverse=True), errors
