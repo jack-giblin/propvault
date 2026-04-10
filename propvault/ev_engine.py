@@ -4,9 +4,9 @@ from datetime import datetime
 from typing import Optional
 
 BASE_URL = "https://api.the-odds-api.com/v4"
-MIN_EV = 1.5
+MIN_EV = 2.5
 MAX_EV_CAP = 15.0  # Increased slightly to catch those high-value unicorns
-MIN_WIN_PROB = 0.35      
+MIN_WIN_PROB = 0.40      
 SHARP_BOOK = "pinnacle"
 TARGET_BOOK = "novig"
 
@@ -128,4 +128,4 @@ def find_ev_bets(api_key: str) -> tuple[list[dict], list[str]]:
             errors.append(f"Notice: {sport} updates pending. ({str(e)})")
 
     all_bets.sort(key=lambda x: x["EV %"], reverse=True)
-    return all_bets, errors
+    return all_bets[:15], errors
