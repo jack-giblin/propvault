@@ -129,8 +129,8 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ... (inside your existing Strategy Guide markdown)
 </div>
+    
     <div style="
         margin-top: 25px; 
         padding-top: 15px; 
