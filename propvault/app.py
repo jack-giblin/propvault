@@ -85,13 +85,14 @@ st.markdown("""
 
 # ── 7. PRO TIPS (The "Under" Bias) ──────────────────────────────────────────
 st.markdown("""
-<div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 10px; border-left: 4px solid #7dd3fc; margin-bottom: 20px;">
-    <div style="font-size: 16px; font-weight: 700; color: #7dd3fc; margin-bottom: 10px;">💡 The PropVault Edge: Why We Fade the Public</div>
+<div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 10px; border-left: 4px solid #ef4444; margin-bottom: 20px;">
+    <div style="font-size: 16px; font-weight: 700; color: #ef4444; margin-bottom: 10px;">📉 The "Anti-Public" Strategy (Reddit Analysis)</div>
     <div style="font-size: 13px; color: #cbd5e1; line-height: 1.5;">
-        <p style="margin-bottom: 8px;"><b>1. The "Under" Advantage:</b> Public bettors love "Overs" because they want to root for action. Books shade their lines higher to account for this. <i>Mathematically, there are more ways to win an Under (injury, foul trouble, blowouts, cold shooting) than an Over.</i></p>
-        <p style="margin-bottom: 8px;"><b>2. Rebound & Strikeout Unders:</b> These are the gold standard. Rebounds rely on pace and miss-frequency; Strikeouts rely on pitch counts and staying in the game. Both are fragile for the athlete, but robust for the bettor.</p>
-        <p style="margin-bottom: 8px;"><b>3. The Usage Lag:</b> When a star sits, books are slow to adjust the rest of the team. Look for <b>Overs</b> on secondary players—this is the rare time the Over has true value.</p>
-        <p style="font-style: italic; color: #94a3b8; font-size: 12px;">"Life is too short to bet the Under" is a motto for losers. Real traders follow the ROI.</p>
+        <p style="margin-bottom: 8px;"><b>1. Overs are a Trap:</b> Data on 4,000+ picks shows "Overs" have a <b>-2.26% ROI</b>. The public bets them because "Overs are fun." Books know this and inflate the numbers. <b>Unders</b> showed a <b>+3.33% ROI</b> because they aren't "fun" and the value is ignored.</p>
+        <p style="margin-bottom: 8px;"><b>2. More Ways to Win:</b> An "Over" requires a perfect game. An <b>Under</b> wins if there is an injury, foul trouble, a blowout, a coaching change, or just a bad shooting day. <i>"There are more ways to lose with an Over than an Under."</i></p>
+        <p style="margin-bottom: 8px;"><b>3. The "Jontay" Factor:</b> Books hate Unders so much they've started removing them or juicing them to be "unattractive." When the scanner finds a <b>7% Edge on an Under</b>, it's a mistake the book didn't want you to find.</p>
+        <p style="margin-bottom: 8px;"><b>4. Basketball & Hockey:</b> These sports showed the <b>worst results</b> for "Over" bettors. If you see a high-EV Under in the NBA, that is the gold standard of this strategy.</p>
+        <p style="font-style: italic; color: #94a3b8; font-size: 12px; border-top: 1px solid #444; padding-top: 8px; margin-top: 8px;">"Life’s too short to bet the Under" is a motto created by sportsbooks to keep you betting on their terms.</p>
     </div>
 </div>
 """, unsafe_allow_html=True)
