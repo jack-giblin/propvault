@@ -84,15 +84,22 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── 7. PRO TIPS (The "Under" Bias) ──────────────────────────────────────────
+# ── 7. PRO TIPS (The "Under" Bias) ──────────────────────────────────────────
 st.markdown("""
-<div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 10px; border-left: 4px solid #ef4444; margin-bottom: 20px;">
-    <div style="font-size: 16px; font-weight: 700; color: #ef4444; margin-bottom: 10px;">📉 The "Anti-Public" Strategy (Reddit Analysis)</div>
-    <div style="font-size: 13px; color: #cbd5e1; line-height: 1.5;">
-        <p style="margin-bottom: 8px;"><b>1. Overs are a Trap:</b> Data on 4,000+ picks shows "Overs" have a <b>-2.26% ROI</b>. The public bets them because "Overs are fun." Books know this and inflate the numbers. <b>Unders</b> showed a <b>+3.33% ROI</b> because they aren't "fun" and the value is ignored.</p>
-        <p style="margin-bottom: 8px;"><b>2. More Ways to Win:</b> An "Over" requires a perfect game. An <b>Under</b> wins if there is an injury, foul trouble, a blowout, a coaching change, or just a bad shooting day. <i>"There are more ways to lose with an Over than an Under."</i></p>
-        <p style="margin-bottom: 8px;"><b>3. The "Jontay" Factor:</b> Books hate Unders so much they've started removing them or juicing them to be "unattractive." When the scanner finds a <b>7% Edge on an Under</b>, it's a mistake the book didn't want you to find.</p>
-        <p style="margin-bottom: 8px;"><b>4. Basketball & Hockey:</b> These sports showed the <b>worst results</b> for "Over" bettors. If you see a high-EV Under in the NBA, that is the gold standard of this strategy.</p>
-        <p style="font-style: italic; color: #94a3b8; font-size: 12px; border-top: 1px solid #444; padding-top: 8px; margin-top: 8px;">"Life’s too short to bet the Under" is a motto created by sportsbooks to keep you betting on their terms.</p>
+<div style="background: rgba(255, 255, 255, 0.05); padding: 18px; border-radius: 12px; border-left: 5px solid #ef4444; margin-bottom: 25px;">
+    <div style="font-size: 18px; font-weight: 800; color: #ef4444; margin-bottom: 12px; letter-spacing: 1px;">📉 THE "ANTI-PUBLIC" EDGE</div>
+    <div style="font-size: 14px; color: #cbd5e1; line-height: 1.6;">
+        <p style="margin-bottom: 10px;"><b>1. The ROI Gap:</b> Statistical analysis of 4,000+ picks shows "Overs" at a <b>-2.26% ROI</b> while "Unders" hit <b>+3.33%</b>. The public bets Overs because it's "fun" to root for points. <b>We don't bet for fun; we bet for the gap.</b></p>
+        
+        <p style="margin-bottom: 10px;"><b>2. The Strikeout Trap:</b> Pitcher Strikeout <b>Unders</b> are a gold mine. A pitcher can stay Under for a dozen reasons: pitch counts, a tight umpire zone, early exits, or just getting shelled. There is only <i>one</i> way to hit an Over.</p>
+        
+        <p style="margin-bottom: 10px;"><b>3. Paths to Victory:</b> An "Under" is winning the moment the game starts. You only lose if the player performs perfectly. "Overs" require a player to overcome a laundry list of adversity (fouls, injuries, blowouts) that sportsbooks don't always price correctly.</p>
+        
+        <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; border: 1px solid #444;">
+            <span style="color: #94a3b8; font-size: 12px; font-style: italic;">
+                "Life’s too short to bet the Under" is a marketing slogan designed by sportsbooks to keep you betting on their terms. In PropVault, we follow the math.
+            </span>
+        </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
