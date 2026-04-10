@@ -3,7 +3,7 @@ from typing import List, Dict, Tuple
 
 BASE_URL = "https://api.the-odds-api.com/v4"
 
-# ── CONFIG ─────────────────────────────────────────────
+# ── CONFIG ─────────────────────────────
 MIN_EV = 0.5
 MAX_EV_CAP = 15.0
 MIN_WIN_PROB = 0.40
@@ -19,7 +19,7 @@ PROP_MARKETS = [
     "player_strikeouts"
 ]
 
-# ── HELPERS ────────────────────────────────────────────
+# ── HELPERS ───────────────────────────
 
 def american_to_decimal(o: float) -> float:
     return o / 100 + 1 if o > 0 else 100 / abs(o) + 1
@@ -28,15 +28,15 @@ def american_to_decimal(o: float) -> float:
 def no_vig_prob(a: float, b: float) -> Tuple[float, float]:
     pa = 1 / american_to_decimal(a)
     pb = 1 / american_to_decimal(b)
-    total = pa + pb
-    return pa / total, pb / total
+    t = pa + pb
+    return pa / t, pb / t
 
 
 def fmt_odds(o: float) -> str:
     return f"+{int(o)}" if o > 0 else str(int(o))
 
 
-# ── ENGINE ─────────────────────────────────────────────
+# ── ENGINE (OPTIMIZED) ─────────────────
 
 def find_ev_bets(api_key: str):
     bets = []
@@ -44,30 +44,22 @@ def find_ev_bets(api_key: str):
 
     for sport in SPORTS:
         try:
-            events = requests.get(
-                f"{BASE_URL}/sports/{sport}/events",
-                params={"apiKey": api_key},
-                timeout=10
+            # 🚀 SINGLE CALL PER SPORT (not per event)
+            odds = requests.get(
+                f"{BASE_URL}/sports/{sport}/odds",
+                params={
+                    "apiKey": api_key,
+                    "regions": "us,eu",
+                    "markets": ",".join(PROP_MARKETS),
+                    "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}",
+                    "oddsFormat": "american"
+                },
+                timeout=15
             ).json()
 
-            for event in events:
-                event_id = event.get("id")
-                if not event_id:
-                    continue
+            for game in odds:
 
-                odds = requests.get(
-                    f"{BASE_URL}/sports/{sport}/events/{event_id}/odds",
-                    params={
-                        "apiKey": api_key,
-                        "regions": "us,eu",
-                        "markets": ",".join(PROP_MARKETS),
-                        "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}",
-                        "oddsFormat": "american"
-                    },
-                    timeout=10
-                ).json()
-
-                books = {b["key"]: b for b in odds.get("bookmakers", [])}
+                books = {b["key"]: b for b in game.get("bookmakers", [])}
 
                 if SHARP_BOOK not in books or TARGET_BOOK not in books:
                     continue
@@ -85,55 +77,48 @@ def find_ev_bets(api_key: str):
                     if not target_m:
                         continue
 
-                    sharp_outcomes = sharp_m.get("outcomes", [])
-                    target_outcomes = target_m.get("outcomes", [])
-
-                    # ── BUILD SHARP LOOKUP ──
                     sharp_lookup = {}
-                    for o in sharp_outcomes:
+                    target_lookup = {}
+
+                    for o in sharp_m.get("outcomes", []):
                         sharp_lookup[(o["description"], o["name"], o.get("point"))] = o
 
-                    # ── BUILD TARGET LOOKUP ──
-                    target_lookup = {}
-                    for o in target_outcomes:
+                    for o in target_m.get("outcomes", []):
                         target_lookup[(o["description"], o["name"], o.get("point"))] = o
 
-                    # ── EV CALC ──
                     for (player, side, point), target_o in target_lookup.items():
 
-                        opp_side = "Under" if side == "Over" else "Over"
+                        opp = "Under" if side == "Over" else "Over"
+
                         key = (player, side, point)
-                        opp_key = (player, opp_side, point)
+                        opp_key = (player, opp, point)
 
                         if key not in sharp_lookup or opp_key not in sharp_lookup:
                             continue
 
                         sharp_price = sharp_lookup[key]["price"]
-                        sharp_opp_price = sharp_lookup[opp_key]["price"]
+                        sharp_opp = sharp_lookup[opp_key]["price"]
 
-                        fair_over, fair_under = no_vig_prob(sharp_price, sharp_opp_price)
+                        fair_over, fair_under = no_vig_prob(sharp_price, sharp_opp)
                         fair_prob = fair_over if side == "Over" else fair_under
 
                         if fair_prob < MIN_WIN_PROB:
                             continue
 
                         target_price = target_o["price"]
-
                         ev = (fair_prob * american_to_decimal(target_price) - 1) * 100
 
-                        if ev < MIN_EV or ev > MAX_EV_CAP:
-                            continue
-
-                        bets.append({
-                            "Sport": sport.split("_")[1].upper(),
-                            "Game": f"{event.get('away_team')} @ {event.get('home_team')}",
-                            "Market": sharp_m["key"].replace("player_", "").replace("_", " ").title(),
-                            "Player": player,
-                            "Side": f"{side} {point}",
-                            "Target Odds": fmt_odds(target_price),
-                            "Fair Odds": fmt_odds(sharp_price),
-                            "EV %": round(ev, 2)
-                        })
+                        if MIN_EV <= ev <= MAX_EV_CAP:
+                            bets.append({
+                                "Sport": sport.split("_")[1].upper(),
+                                "Game": f"{game.get('away_team')} @ {game.get('home_team')}",
+                                "Market": sharp_m["key"].replace("player_", "").replace("_", " ").title(),
+                                "Player": player,
+                                "Side": f"{side} {point}",
+                                "Target Odds": fmt_odds(target_price),
+                                "Fair Odds": fmt_odds(sharp_price),
+                                "EV %": round(ev, 2)
+                            })
 
         except Exception as e:
             errors.append(f"{sport}: {str(e)}")
