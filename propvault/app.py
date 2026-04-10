@@ -168,7 +168,7 @@ st.markdown(f"""
 <div class="pv-header">
     <div>
         <div class="pv-logo-name">PropVault</div>
-        <div style="color:#475569; font-size:14px; font-weight:500;">Sharp-Aggregated Player Prop Edges</div>
+        <div style="color:#ffffff; font-size:14px; font-weight:500;">When the "Fair Value" price is lower than the available odds, you have a mathematical edge.</div>
     </div>
     <div style="display:flex; gap:15px; align-items:center;">
         <a class="pv-beer-btn" href="https://www.buymeacoffee.com/notjxck" target="_blank">🍺 Buy me a beer</a>
