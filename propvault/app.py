@@ -87,9 +87,9 @@ st.markdown("""
 
   .bet-body  { flex: 1; min-width: 0; }
   .bet-side  {
-    font-size: 20px; font-weight: 800; color: #f1f5f9;
+    font-size: 18px; font-weight: 800; color: #f1f5f9;
     letter-spacing: -0.3px; margin-bottom: 5px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    white-space: normal; overflow: hidden; text-overflow: ellipsis;
   }
   .bet-meta  { font-size: 13px; color: #64748b; font-weight: 500; margin-bottom: 10px; }
   .bet-odds-row { display: flex; align-items: center; gap: 10px; }
@@ -238,7 +238,7 @@ else:
         icon_class = "mlb-icon" if sport == "MLB" else "nba-icon"
         icon_emoji = "⚾" if sport == "MLB" else "🏀"
         ev         = bet["EV %"]
-        ev_color   = "#4ade80" if ev >= 8 else "#facc15" if ev >= 5 else "#fb923c" if ev >= 3 else "#94a3b8"
+        ev_color = "#4ade80" if ev >= 4 else "#facc15" if ev >= 2 else "#94a3b8"
         novig_raw  = bet["Novig Odds"]
         odds_class = "odds-pos" if novig_raw.startswith("+") else "odds-neg"
 
