@@ -83,17 +83,35 @@ st.markdown("""
   .bet-side { font-size: 20px; font-weight: 800; color: #f1f5f9; }
   .ev-value { font-size: 36px; font-weight: 900; }
 
+  /* CENTERED UNICORN BUTTON */
+  .stButton {
+    display: flex !important;
+    justify-content: center !important; /* Centers the button container */
+    margin-top: 10px !important;
+    margin-bottom: 20px !important;
+  }
+
   .stButton > button {
-    height: 60px !important;
-    width: 100% !important;
-    background: #0f172a !important;
-    border: 2px solid #7dd3fc !important; /* Powder Blue Border */
+    height: 64px !important;
+    min-width: 320px !important; /* Ensures it doesn't look like a tiny pill */
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+    border: 2px solid #7dd3fc !important;
     color: #7dd3fc !important;
-    font-size: 18px !important;
+    font-size: 20px !important; /* Big and readable */
     font-weight: 900 !important;
-    border-radius: 15px !important;
-    box-shadow: 0 0 15px rgba(125, 211, 252, 0.2) !important; /* The Glow */
-    cursor: pointer !important;
+    border-radius: 20px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 2px !important;
+    white-space: nowrap !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4), 0 0 15px rgba(125, 211, 252, 0.1) !important;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  }
+
+  .stButton > button:hover {
+    transform: scale(1.05) !important; /* Makes it "throb" slightly on hover */
+    border-color: #fff !important;
+    box-shadow: 0 0 25px rgba(125, 211, 252, 0.4) !important;
+    color: #fff !important;
   }
 </style>
 """, unsafe_allow_html=True)
