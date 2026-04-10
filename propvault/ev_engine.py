@@ -65,39 +65,39 @@ def _fmt_side(name: str, point: float, market_key: str, description: str = "") -
     pt = f"+{point}" if point > 0 else str(point)
     return f"{name} {pt}"
 
-def find_ev_bets(api_key: str) -> tuple[list[dict], list[str]]:
+def find_ev_bets(api_key):
     all_bets = []
     errors = []
-    api_key = api_key.strip()
-
-    for sport in SPORTS:
+    # Narrow down to specific markets to keep the data payload manageable
+    # Adding 'player_points' or 'player_assists' here only costs 1 credit for the WHOLE league
+    target_markets = "h2h,spreads,totals,player_points,player_assists"
+    
+    for sport in ["basketball_nba", "baseball_mlb"]:
+      url = f"https://api.parlay-api.com/v4/sports/{sport}/odds/"
+        params = {
+            "apiKey": api_key,
+            "regions": "us",
+            "markets": target_markets,
+            "oddsFormat": "american"
+        }
+        
         try:
-            bulk_events = fetch_bulk_odds(api_key, sport, ",".join(MAIN_MARKETS))
+            response = requests.get(url, params=params)
+            # Check for credit exhaustion
+            if response.status_code == 401:
+                errors.append(f"API Key exhausted or invalid for {sport}.")
+                continue
+                
+            data = response.json()
             
-            for event in bulk_events:
-                # 1. Check Main Markets (Spreads/Totals)
-                pinnacle = next((b for b in event["bookmakers"] if b["key"] == SHARP_BOOK), None)
-                novig = next((b for b in event["bookmakers"] if b["key"] == TARGET_BOOK), None)
-
-                if pinnacle and novig:
-                    for pin_mkt in pinnacle["markets"]:
-                        nov_mkt = next((m for m in novig["markets"] if m["key"] == pin_mkt["key"]), None)
-                        if not nov_mkt: continue
-
-                        for p_out in pin_mkt["outcomes"]:
-                            n_out = next((o for o in nov_mkt["outcomes"] if o["name"] == p_out["name"] and o.get("point") == p_out.get("point")), None)
-                            other_p = next((o for o in pin_mkt["outcomes"] if o["name"] != p_out["name"] and o.get("point") == p_out.get("point")), None)
-                            
-                            if n_out and other_p:
-                                fair_prob, _ = no_vig_prob(p_out["price"], other_p["price"])
-                                ev = (fair_prob * american_to_decimal(n_out["price"]) - 1) * 100
-                                if MIN_EV < ev < MAX_EV_CAP and fair_prob >= MIN_WIN_PROB:
-                                    all_bets.append({
-                                        "Sport": sport.split("_")[1].upper(), "Game": f"{event['away_team']} @ {event['home_team']}",
-                                        "Market": MARKET_LABELS.get(pin_mkt["key"], pin_mkt["key"]),
-                                        "Side": _fmt_side(n_out["name"], n_out.get("point", 0), pin_mkt["key"]),
-                                        "Novig Odds": fmt_odds(int(n_out["price"])), "Fair Odds": decimal_to_american(1/fair_prob), "EV %": round(ev, 2)
-                                    })
+            # Now, instead of looping and calling the API again, 
+            # all the prop data is ALREADY in the 'data' variable.
+            # You just need to parse the 'bookmakers' list within each game.
+            
+        except Exception as e:
+            errors.append(f"Error fetching {sport}: {str(e)}")
+            
+    return all_bets[:30], errors
 
                 # 2. Check Player Props for this specific event
                 prop_bms = fetch_event_props(api_key, sport, event["id"])
