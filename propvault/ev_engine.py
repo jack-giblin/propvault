@@ -12,7 +12,7 @@ MIN_EV = 1.5
 SHARP_BOOK = "pinnacle"
 TARGET_BOOK = "novig"
 SPORTS = ["baseball_mlb", "basketball_nba"]
-MARKETS = ["h2h"]  # spreads/totals added once line-matching is validated
+MARKETS = ["h2h", "spreads", "totals"]
 
 SPORT_LABELS = {
     "baseball_mlb": "MLB",
