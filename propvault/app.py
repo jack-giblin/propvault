@@ -141,14 +141,22 @@ st.markdown("""
     <div style="font-size: 18px; font-weight: 800; color: #ef4444; margin-bottom: 15px; letter-spacing: 1px; text-transform: uppercase;">📉 THE "ANTI-PUBLIC" STRATEGY</div>
     <div style="font-size: 15px; color: #e2e8f0; line-height: 1.6;">
         <p style="margin-bottom: 12px;">
-            <span style="font-weight: 800; color: #fff;">1. The "Fun" Tax:</span> Data shows "Overs" carry a negative ROI. The public bets them because they want a reason to cheer. Books bake in "juice" that only the <span style="font-weight: 800; color: #4ade80;">Under</span> can exploit.
+            <span style="font-weight: 800; color: #fff;">1. The "Fun" Tax:</span> Data on 4,000+ picks shows "Overs" at a <span style="font-weight: 800; color: #fb7185;">-2.26% ROI</span>. The public bets them because they want a reason to cheer. Books know this and bake in "juice" that only the <span style="font-weight: 800; color: #4ade80;">Under (+3.33% ROI)</span> can exploit.
         </p>
         <p style="margin-bottom: 12px;">
-            <span style="font-weight: 800; color: #fff;">2. One Path vs. Ten:</span> To hit a player "Over," everything must go perfectly. An <span style="font-weight: 800; color: #fff;">Under</span> wins via injury, foul trouble, blowouts, or a bad shooting night.
+            <span style="font-weight: 800; color: #fff;">2. One Path vs. Ten:</span> To hit a player "Over," everything must go perfectly. An <span style="font-weight: 800; color: #fff;">Under</span> wins if there is an injury, foul trouble, a blowout, a coaching change, or a bad shooting night. <i>"There are more ways to lose with an Over than an Under."</i>
         </p>
         <p style="margin-bottom: 12px;">
-            <span style="font-weight: 800; color: #fff;">3. The "Worst" Markets:</span> Basketball and Hockey show the worst results for "Over" bettors. If the scanner finds a high-EV Under in these sports, that is the gold standard.
+            <span style="font-weight: 800; color: #fff;">3. Pitcher Strikeout Unders:</span> This prop should not be ignored! A pitcher hits an Under if they get shelled, hit a pitch count, or the umpire has a tight zone. To hit an Over, they have to be flawless for 6+ innings. <span style="font-weight: 800; color: #7dd3fc;">Bet on the chaos.</span>
         </p>
+        <p style="margin-bottom: 12px;">
+            <span style="font-weight: 800; color: #fff;">4. The "Worst" Markets:</span> <span style="font-weight: 900; color: #fff;">Basketball and Hockey</span> showed the worst results for "Over" bettors. These sports are driven by streaks and rotations that the public ignores. If the scanner finds a high-EV Under in the NBA or NHL, that is the gold standard of this strategy.
+        </p>
+        <div style="border-top: 1px solid #444; padding-top: 10px; margin-top: 15px;">
+            <span style="color: #94a3b8; font-size: 13px; font-style: italic;">
+                "Life’s too short to bet the Under" is a marketing slogan designed by sportsbooks to keep you betting on their terms.
+            </span>
+        </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
