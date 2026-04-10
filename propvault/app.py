@@ -84,13 +84,16 @@ st.markdown("""
   .ev-value { font-size: 36px; font-weight: 900; }
 
   .stButton > button {
-    height: 50px !important;
-    background: #7dd3fc22 !important;
-    border: 2px solid #7dd3fc55 !important;
+    height: 60px !important;
+    width: 100% !important;
+    background: #0f172a !important;
+    border: 2px solid #7dd3fc !important; /* Powder Blue Border */
     color: #7dd3fc !important;
-    font-size: 16px !important;
-    font-weight: 800 !important;
-    border-radius: 14px !important;
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    border-radius: 15px !important;
+    box-shadow: 0 0 15px rgba(125, 211, 252, 0.2) !important; /* The Glow */
+    cursor: pointer !important;
   }
 </style>
 """, unsafe_allow_html=True)
