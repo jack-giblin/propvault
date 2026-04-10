@@ -117,7 +117,7 @@ st.markdown("""
 st.markdown("""
 <div class="guide-container">
     <div style="font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 10px;">🚀 Strategy & Tier Guide</div>
-    <div style="color: #f1f5f9; margin-bottom: 24px;">PropVault identifies price discrepancies by cross-referencing Pinnacle’s sharp-market liquidity against Novig’s live lines. When the "Fair Value" price is lower than the available odds, you have a mathematical edge.</div>
+    <div style="color: #f1f5f9; margin-bottom: 24px;">PropVault identifies price discrepancies by cross-referencing Pinnacle’s sharp-market liquidity against Darftking's live lines. When the "Fair Value" price is lower than the available odds, you have a mathematical edge.</div>
     <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 25px;">
         <div class="legend-item" style="border-top: 4px solid #94a3b8;"><div style="color:#94a3b8; font-size:12px; font-weight:800;">STANDARD</div><div style="font-weight:700;">2% - 5% EV</div></div>
         <div class="legend-item" style="border-top: 4px solid #facc15;"><div style="color:#facc15; font-size:12px; font-weight:800;">PREMIUM</div><div style="font-weight:700;">5% - 7% EV</div></div>
