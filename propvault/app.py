@@ -1,214 +1,126 @@
-"""
-PropVault — +EV Engine
-Streamlit frontend. Run with: streamlit run app.py
-"""
-
 import os
 import time
 import streamlit as st
 from ev_engine import find_ev_bets
 
-st.set_page_config(
-    page_title="PropVault · +EV Engine",
-    page_icon="🦄",
-    layout="wide",
-)
+# ── PAGE CONFIG ──────────────────────────────────────────────────────────────
+st.set_page_config(page_title="PropVault", page_icon="🦄", layout="wide")
 
+# ── CSS (Now includes centering and button heft) ─────────────────────────────
 st.markdown("""
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
   html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     background-color: #0d1117 !important;
     font-family: 'Inter', sans-serif !important;
   }
-  [data-testid="stHeader"] { background: transparent; }
-  #MainMenu, footer, header { visibility: hidden; }
   .block-container { padding: 2rem 2.5rem !important; max-width: 900px !important; margin: 0 auto; }
 
-  /* STRATEGY GUIDE - BIG & BOLD VERSION */
+  /* CENTERING THE BUTTON CONTAINER */
+  div.stButton { text-align: center; display: flex; justify-content: center; margin: 30px 0; }
+
+  div.stButton > button {
+    width: 380px !important; height: 64px !important;
+    background: #131920 !important; border: 2px solid #7dd3fc !important;
+    border-radius: 16px !important; color: #7dd3fc !important;
+    font-weight: 900 !important; font-size: 18px !important;
+    text-transform: uppercase !important; letter-spacing: 1px !important;
+    box-shadow: 0 0 15px rgba(125, 211, 252, 0.1); transition: all 0.3s ease;
+  }
+  div.stButton > button:hover { transform: scale(1.02); box-shadow: 0 0 25px rgba(125, 211, 252, 0.3); }
+
+  /* STRATEGY GUIDE */
   .guide-container {
-    background: linear-gradient(180deg, #161e28 0%, #131920 100%);
-    border: 2px solid #1e2a38;
-    border-radius: 24px;
-    padding: 32px;
-    margin-bottom: 32px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  }
-  .guide-title { 
-    font-size: 28px; 
-    font-weight: 900; 
-    color: #f8fafc; 
-    margin-bottom: 12px; 
-    letter-spacing: -0.5px;
-  }
-  .guide-text { 
-    font-size: 16px; 
-    color: #94a3b8; 
-    line-height: 1.6; 
-    margin-bottom: 24px;
-    max-width: 800px;
-  }
-  .legend-row { 
-    display: flex; 
-    gap: 16px; 
-    flex-wrap: wrap; 
+    background: #131920; border: 1px solid #1e2a38;
+    border-radius: 24px; padding: 32px; margin-bottom: 20px;
   }
   .legend-item { 
-    display: flex; 
-    flex-direction: column;
-    gap: 8px;
-    padding: 16px 24px;
-    background: #1e293b;
-    border-radius: 16px;
-    border: 1px solid #334155;
-    flex: 1;
-    min-width: 180px;
+    background: #1e293b; border-radius: 16px; padding: 16px; flex: 1; min-width: 150px;
+    border: 1px solid #334155; text-align: center;
   }
-  .legend-label { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-  .legend-desc  { font-size: 15px; font-weight: 700; color: #f1f5f9; }
-
-  /* HEADER */
-  .pv-header {
-    display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;
-  }
-  .pv-logo-text { font-size: 32px; font-weight: 900; color: #fff; letter-spacing: -1px; }
-
+  
   /* CARDS */
   .bet-card {
-    background: #131920; border: 1px solid #1e2a38;
-    border-radius: 20px; padding: 24px;
-    margin-bottom: 16px; display: flex; align-items: center; gap: 24px;
+    background: #131920; border: 1px solid #1e2a38; border-radius: 20px;
+    padding: 24px; margin-bottom: 16px; display: flex; align-items: center; gap: 24px;
   }
   .bet-side { font-size: 20px; font-weight: 800; color: #f1f5f9; }
-  .ev-value { font-size: 36px; font-weight: 900; }
-
-  /* CENTERED UNICORN BUTTON */
-  .stButton {
-    display: flex !important;
-    justify-content: center !important; /* Centers the button container */
-    margin-top: 10px !important;
-    margin-bottom: 20px !important;
-  }
-
-  .stButton > button {
-    height: 64px !important;
-    min-width: 320px !important; /* Ensures it doesn't look like a tiny pill */
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
-    border: 2px solid #7dd3fc !important;
-    color: #7dd3fc !important;
-    font-size: 20px !important; /* Big and readable */
-    font-weight: 900 !important;
-    border-radius: 20px !important;
-    text-transform: uppercase !important;
-    letter-spacing: 2px !important;
-    white-space: nowrap !important;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.4), 0 0 15px rgba(125, 211, 252, 0.1) !important;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-  }
-
-  .stButton > button:hover {
-    transform: scale(1.05) !important; /* Makes it "throb" slightly on hover */
-    border-color: #fff !important;
-    box-shadow: 0 0 25px rgba(125, 211, 252, 0.4) !important;
-    color: #fff !important;
-  }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Header ────────────────────────────────────────────────────────────────────
-
-st.markdown("""
-<div class="pv-header">
-  <div style="display: flex; align-items: center; gap: 16px;">
-    <div style="font-size: 40px;">🦄</div>
-    <div class="pv-logo-text">PropVault</div>
-  </div>
-  <div style="color: #64748b; font-weight: 600; font-size: 14px;">LIVE DATA ENGINE</div>
-</div>
-""", unsafe_allow_html=True)
-
-# ── Strategy Guide (New High-Visibility Version) ──────────────────────────────
-
-st.markdown("""
-<div class="guide-container">
-    <div class="guide-title">🚀 Betting Strategy & Tier Guide</div>
-    <div class="guide-text">
-        Our engine identifies discrepancies by comparing <b>Pinnacle Sharp Liquidity</b> against <b>Novig Lines</b>. 
-        Higher EV% represents a larger mathematical error by the sportsbook.
-    </div>
-    <div class="legend-row">
-        <div class="legend-item" style="border-top: 4px solid #94a3b8;">
-            <div class="legend-label" style="color:#94a3b8;">Standard Edge</div>
-            <div class="legend-desc">2% - 5% EV</div>
-        </div>
-        <div class="legend-item" style="border-top: 4px solid #facc15;">
-            <div class="legend-label" style="color:#facc15;">Premium Edge</div>
-            <div class="legend-desc">5% - 7% EV</div>
-        </div>
-        <div class="legend-item" style="border-top: 4px solid #7dd3fc; background: #0f172a;">
-            <div class="legend-label" style="color:#7dd3fc;">🦄 The Unicorn</div>
-            <div class="legend-desc">7% + EV Outlier</div>
-        </div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# ── API Logic ─────────────────────────────────────────────────────────────────
-
+# ── LOGIC & STATE ────────────────────────────────────────────────────────────
 def get_api_key():
-    try: return st.secrets["ODDS_API_KEY"]
-    except: return os.getenv("ODDS_API_KEY", "")
+    return st.secrets.get("ODDS_API_KEY", os.getenv("ODDS_API_KEY", ""))
 
 api_key = get_api_key()
 
-if not api_key:
-    st.warning("Set your API Key to begin.")
-    st.stop()
-
-# ── Data Fetching ────────────────────────────────────────────────────────────
-
+# Initialize session state so data persists
 if "bets" not in st.session_state:
     st.session_state["bets"] = []
-    st.session_state["fetched_at"] = None
+if "last_run" not in st.session_state:
+    st.session_state["last_run"] = None
 
-col_ref, _ = st.columns([2.5, 3.5])
-with col_ref:
-    refresh = st.button("🦄 HUNT FOR UNICORNS")
+# ── HEADER ───────────────────────────────────────────────────────────────────
+st.markdown("""
+<div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+    <div style="font-size: 40px;">🦄</div>
+    <div style="font-size: 32px; font-weight: 900; color: #fff;">PropVault</div>
+</div>
+""", unsafe_allow_html=True)
 
-if refresh or st.session_state["fetched_at"] is None:
-    with st.spinner("Calculating probability distributions..."):
-        bets, errors = find_ev_bets(api_key)
-        st.session_state["bets"] = bets
-        st.session_state["fetched_at"] = time.time()
+# ── STRATEGY GUIDE ───────────────────────────────────────────────────────────
+st.markdown("""
+<div class="guide-container">
+    <div style="font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 10px;">🚀 Strategy & Tier Guide</div>
+    <div style="color: #94a3b8; margin-bottom: 24px;">Comparing Pinnacle Sharp Liquidity vs Novig Lines.</div>
+    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+        <div class="legend-item" style="border-top: 4px solid #94a3b8;"><div style="color:#94a3b8; font-size:12px; font-weight:800;">STANDARD</div><div style="font-weight:700;">2% - 5% EV</div></div>
+        <div class="legend-item" style="border-top: 4px solid #facc15;"><div style="color:#facc15; font-size:12px; font-weight:800;">PREMIUM</div><div style="font-weight:700;">5% - 7% EV</div></div>
+        <div class="legend-item" style="border-top: 4px solid #7dd3fc;"><div style="color:#7dd3fc; font-size:12px; font-weight:800;">🦄 UNICORN</div><div style="font-weight:700;">7%+ EV</div></div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-bets = st.session_state.get("bets", [])
+# ── THE BUTTON (Centered with Spacers) ───────────────────────────────────────
+_, center_col, _ = st.columns([1, 2, 1])
+with center_col:
+    if st.button("🦄 HUNT FOR UNICORNS"):
+        with st.spinner("Analyzing Markets..."):
+            results, errors = find_ev_bets(api_key)
+            st.session_state["bets"] = results
+            st.session_state["last_run"] = time.strftime("%H:%M:%S")
+            if errors:
+                for err in errors: st.error(err)
 
-# ── Render Cards ──────────────────────────────────────────────────────────────
+# ── RESULTS ──────────────────────────────────────────────────────────────────
+if st.session_state["last_run"]:
+    st.markdown(f"<div style='text-align:center; color:#475569; font-size:12px; margin-bottom:20px;'>Last Update: {st.session_state['last_run']}</div>", unsafe_allow_html=True)
+
+bets = st.session_state["bets"]
 
 if not bets:
-    st.markdown("<div style='text-align:center; padding:50px; color:#475569;'>Searching for market anomalies...</div>", unsafe_allow_html=True)
+    st.markdown("<div style='text-align:center; padding:60px; color:#334155;'>Click the button to scan for market anomalies.</div>", unsafe_allow_html=True)
 else:
     for bet in bets:
         ev = bet["EV %"]
         color = "#7dd3fc" if ev >= 7 else "#facc15" if ev >= 5 else "#94a3b8"
-        bg = "rgba(125, 211, 252, 0.1)" if ev >= 7 else "transparent"
+        bg = "rgba(125, 211, 252, 0.05)" if ev >= 7 else "transparent"
         label = "🦄 UNICORN" if ev >= 7 else "🔥 PREMIUM" if ev >= 5 else "📊 STANDARD"
 
         st.markdown(f"""
         <div class="bet-card" style="border-left: 6px solid {color}; background: {bg};">
           <div style="flex: 1;">
-            <div style="color: {color}; font-weight: 900; font-size: 12px; margin-bottom: 8px; letter-spacing: 1px;">{label}</div>
+            <div style="color: {color}; font-weight: 900; font-size: 12px; margin-bottom: 4px;">{label}</div>
             <div class="bet-side">{bet["Side"]}</div>
-            <div style="color: #64748b; font-size: 14px; margin-top: 4px;">{bet["Game"]} · {bet["Market"]}</div>
-            <div style="margin-top: 16px; display: flex; align-items: center; gap: 12px;">
-                <span style="background: #22c55e22; color: #4ade80; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 18px;">{bet["Novig Odds"]}</span>
-                <span style="color: #475569; font-size: 12px; font-weight: 600;">vs Fair {bet["Fair Odds"]}</span>
+            <div style="color: #64748b; font-size: 14px;">{bet["Game"]} · {bet["Market"]}</div>
+            <div style="margin-top: 12px; display: flex; align-items: center; gap: 10px;">
+                <span style="background: #22c55e22; color: #4ade80; padding: 4px 10px; border-radius: 6px; font-weight: 800;">{bet["Novig Odds"]}</span>
+                <span style="color: #475569; font-size: 12px;">vs Fair {bet["Fair Odds"]}</span>
             </div>
           </div>
           <div style="text-align: right;">
-            <div class="ev-value" style="color: {color};">+{ev}%</div>
-            <div style="color: #64748b; font-size: 12px; font-weight: 700; text-transform: uppercase;">Expected Value</div>
+            <div style="font-size: 32px; font-weight: 900; color: {color};">+{ev}%</div>
+            <div style="color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase;">Expected Value</div>
           </div>
         </div>
         """, unsafe_allow_html=True)
