@@ -1,0 +1,156 @@
+"""
+PropVault — EV Engine
+All math and Odds API fetching lives here.
+"""
+
+import httpx
+from typing import Optional
+
+BASE_URL = "https://api.the-odds-api.com/v4"
+MIN_EV = 1.5
+SHARP_BOOK = "pinnacle"
+TARGET_BOOK = "novig"
+SPORTS = ["baseball_mlb", "basketball_nba"]
+MARKETS = ["h2h", "spreads", "totals"]
+
+SPORT_LABELS = {
+    "baseball_mlb": "MLB",
+    "basketball_nba": "NBA",
+}
+MARKET_LABELS = {
+    "h2h": "Moneyline",
+    "spreads": "Spread",
+    "totals": "Total",
+}
+
+
+# ── Math ──────────────────────────────────────────────────────────────────────
+
+def american_to_decimal(o: float) -> float:
+    return o / 100 + 1 if o > 0 else 100 / abs(o) + 1
+
+
+def decimal_to_american(d: float) -> str:
+    return f"+{round((d - 1) * 100)}" if d >= 2 else str(round(-100 / (d - 1)))
+
+
+def implied_prob(o: float) -> float:
+    return 1 / american_to_decimal(o)
+
+
+def no_vig_prob(price_a: float, price_b: float) -> tuple[float, float]:
+    """Additive devig on a two-sided market. Returns (fair_a, fair_b)."""
+    pa, pb = implied_prob(price_a), implied_prob(price_b)
+    total = pa + pb
+    return pa / total, pb / total
+
+
+def calc_ev(fair_prob: float, novig_decimal: float) -> float:
+    """EV as a percentage."""
+    return (fair_prob * novig_decimal - 1) * 100
+
+
+def fmt_odds(o: int) -> str:
+    return f"+{o}" if o > 0 else str(o)
+
+
+# ── Odds API ──────────────────────────────────────────────────────────────────
+
+def fetch_odds(api_key: str, sport: str, market: str) -> list[dict]:
+    url = f"{BASE_URL}/sports/{sport}/odds"
+    params = {
+        "apiKey": api_key,
+        "regions": "us",
+        "markets": market,
+        "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}",
+        "oddsFormat": "american",
+    }
+    with httpx.Client(timeout=10) as client:
+        resp = client.get(url, params=params)
+        resp.raise_for_status()
+        return resp.json()
+
+
+def _get_book(event: dict, key: str) -> Optional[dict]:
+    for bm in event.get("bookmakers", []):
+        if bm["key"] == key:
+            return bm
+    return None
+
+
+def _get_market(book: dict, key: str) -> Optional[dict]:
+    for m in book.get("markets", []):
+        if m["key"] == key:
+            return m
+    return None
+
+
+def _outcomes_map(market: dict) -> dict[str, float]:
+    return {o["name"]: o["price"] for o in market.get("outcomes", [])}
+
+
+# ── Core pipeline ─────────────────────────────────────────────────────────────
+
+def find_ev_bets(api_key: str) -> tuple[list[dict], list[str]]:
+    """
+    Returns (bets, errors).
+    bets  — list of +EV opportunities sorted by EV descending
+    errors — any non-fatal fetch errors encountered
+    """
+    all_bets: list[dict] = []
+    errors: list[str] = []
+
+    for sport in SPORTS:
+        for market in MARKETS:
+            try:
+                events = fetch_odds(api_key, sport, market)
+            except httpx.HTTPStatusError as e:
+                errors.append(f"{sport}/{market}: HTTP {e.response.status_code}")
+                continue
+            except Exception as e:
+                errors.append(f"{sport}/{market}: {e}")
+                continue
+
+            for event in events:
+                game = f"{event['away_team']} vs {event['home_team']}"
+                pinnacle = _get_book(event, SHARP_BOOK)
+                novig    = _get_book(event, TARGET_BOOK)
+                if not pinnacle or not novig:
+                    continue
+
+                pin_mkt = _get_market(pinnacle, market)
+                nov_mkt = _get_market(novig, market)
+                if not pin_mkt or not nov_mkt:
+                    continue
+
+                pin_map = _outcomes_map(pin_mkt)
+                nov_map = _outcomes_map(nov_mkt)
+                if len(pin_map) != 2:
+                    continue
+
+                sides = list(pin_map.keys())
+                fair_a, fair_b = no_vig_prob(pin_map[sides[0]], pin_map[sides[1]])
+                fair_map = {sides[0]: fair_a, sides[1]: fair_b}
+
+                for side, fair_prob in fair_map.items():
+                    if side not in nov_map:
+                        continue
+                    nov_price   = nov_map[side]
+                    nov_decimal = american_to_decimal(nov_price)
+                    ev          = calc_ev(fair_prob, nov_decimal)
+                    if ev < MIN_EV:
+                        continue
+
+                    all_bets.append({
+                        "Sport":      SPORT_LABELS.get(sport, sport.upper()),
+                        "Game":       game,
+                        "Market":     MARKET_LABELS.get(market, market),
+                        "Side":       side,
+                        "Novig Odds": fmt_odds(int(nov_price)),
+                        "Fair Odds":  decimal_to_american(1 / fair_prob),
+                        "Fair Prob":  f"{fair_prob * 100:.1f}%",
+                        "EV %":       round(ev, 2),
+                    })
+
+    all_bets.sort(key=lambda b: b["EV %"], reverse=True)
+    return all_bets, errors
