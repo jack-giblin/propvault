@@ -109,16 +109,17 @@ if "last_run" not in st.session_state:
 
 # ── HEADER ───────────────────────────────────────────────────────────────────
 st.markdown("""
-    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
-        <span style="font-size: 45px;">🦄</span>
+    <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px;">
+        <img src="https://img.icons8.com/fluency/96/unicorn.png" 
+             style="width: 65px; height: 65px; filter: drop-shadow(0 0 10px rgba(125, 211, 252, 0.4));">
         <h1 style="
             background: linear-gradient(90deg, #7dd3fc 0%, #ffffff 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-family: 'Inter', sans-serif;
-            font-size: 42px;
+            font-size: 48px;
             font-weight: 900;
-            letter-spacing: -1px;
+            letter-spacing: -1.5px;
             margin: 0;
         ">
             PropVault
