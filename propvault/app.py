@@ -74,10 +74,21 @@ if "last_run" not in st.session_state:
 
 # ── HEADER ───────────────────────────────────────────────────────────────────
 st.markdown("""
-<div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
-    <div style="font-size: 40px;">🦄</div>
-    <div style="font-size: 32px; font-weight: 900; color: #fff;">PropVault</div>
-</div>
+    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+        <span style="font-size: 45px;">🦄</span>
+        <h1 style="
+            background: linear-gradient(90deg, #7dd3fc 0%, #ffffff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: 'Inter', sans-serif;
+            font-size: 42px;
+            font-weight: 900;
+            letter-spacing: -1px;
+            margin: 0;
+        ">
+            PropVault
+        </h1>
+    </div>
 """, unsafe_allow_html=True)
 
 # ── STRATEGY GUIDE ───────────────────────────────────────────────────────────
