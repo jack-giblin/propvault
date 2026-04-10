@@ -79,8 +79,17 @@ import os
 import streamlit as st
 
 def get_api_key():
-    # Looks for the "ODDS_API_KEY" you typed into Railway's Variables
-    key = os.environ.get("ODDS_API_KEY") or st.secrets.get("ODDS_API_KEY", "")
+    # 1. Try pulling from Railway Variables first (Best way)
+    key = os.environ.get("ODDS_API_KEY")
+    
+    # 2. If Railway variable is missing, safely try secrets
+    if not key:
+        try:
+            key = st.secrets.get("ODDS_API_KEY", "")
+        except FileNotFoundError:
+            # If we are on Railway and no file exists, just set to empty
+            key = ""
+            
     return key.strip() if key else ""
 
 api_key = get_api_key()
