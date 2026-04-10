@@ -51,10 +51,10 @@ def _fmt_side(name: str, point: float, market_key: str, description: str = "") -
 def find_ev_bets(api_key):
     all_bets = []
     errors = []
-    # Combined target markets for the batch request
     target_markets = "h2h,spreads,totals,player_points,player_assists,pitcher_strikeouts"
     
-    for sport in SPORTS:
+    for sport in ["basketball_nba", "baseball_mlb"]:
+        # Use the EXACT URL from their website example
         url = f"https://parlay-api.com/v1/sports/{sport}/odds"
         params = {
             "apiKey": api_key,
@@ -65,37 +65,29 @@ def find_ev_bets(api_key):
         
         try:
             response = requests.get(url, params=params, timeout=15)
-            if response.status_code == 401:
-                errors.append(f"API Key exhausted or invalid for {sport}.")
-                continue
-                
             if response.status_code != 200:
                 continue
 
-            data = response.json()
-            
-            for event in data:
-                bookies = {b['key']: b['markets'] for b in event.get('bookmakers', [])}
+            events = response.json()
+            for event in events:
+                # FIX: Use 'title' and lowercase it to match your SHARP_BOOK variable
+                bookies = {b['title'].lower(): b['markets'] for b in event.get('bookmakers', [])}
                 
-                if SHARP_BOOK in bookies and TARGET_BOOK in bookies:
-                    # Look for discrepancies in the markets provided in the batch
-                    for sharp_mkt in bookies[SHARP_BOOK]:
-                        m_key = sharp_mkt['key']
-                        nov_mkt = next((m for m in bookies[TARGET_BOOK] if m['key'] == m_key), None)
+                # Check for "pinnacle" and "novig" in the titles
+                if "pinnacle" in bookies and "novig" in bookies:
+                    for s_mkt in bookies["pinnacle"]:
+                        m_key = s_mkt['key']
+                        n_mkt = next((m for m in bookies["novig"] if m['key'] == m_key), None)
                         
-                        if nov_mkt and len(sharp_mkt['outcomes']) == 2:
-                            s_outs = sharp_mkt['outcomes']
-                            n_outs = nov_mkt['outcomes']
-
-                            # Calculate No-Vig Probability
+                        if n_mkt and len(s_mkt['outcomes']) == 2:
+                            s_outs = s_mkt['outcomes']
                             try:
                                 p1_fair, p2_fair = no_vig_prob(s_outs[0]['price'], s_outs[1]['price'])
-                            except:
-                                continue
+                            except: continue
 
                             for i in range(2):
-                                # Match Novig outcome to Pinnacle outcome
-                                n_out = next((o for o in n_outs if o['name'] == s_outs[i]['name'] and o.get('point') == s_outs[i].get('point')), None)
+                                # Outcome matching
+                                n_out = next((o for o in n_mkt['outcomes'] if o['name'] == s_outs[i]['name'] and o.get('point') == s_outs[i].get('point')), None)
                                 
                                 if n_out:
                                     fair_prob = p1_fair if i == 0 else p2_fair
@@ -103,17 +95,15 @@ def find_ev_bets(api_key):
                                     
                                     if MIN_EV < ev < MAX_EV_CAP and fair_prob >= MIN_WIN_PROB:
                                         all_bets.append({
-                                            "Sport": sport.split("_")[1].upper() if "_" in sport else sport.upper(),
                                             "Game": f"{event['away_team']} @ {event['home_team']}",
-                                            "Market": MARKET_LABELS.get(m_key, m_key), 
+                                            "Market": MARKET_LABELS.get(m_key, m_key.replace('_', ' ').title()),
                                             "Side": _fmt_side(n_out["name"], n_out.get("point", 0), m_key, n_out.get("description", "")),
                                             "Novig Odds": fmt_odds(int(n_out["price"])),
                                             "Fair Odds": decimal_to_american(1/fair_prob),
                                             "EV %": round(ev, 2)
                                         })
-
         except Exception as e:
-            errors.append(f"Notice: {sport} updates pending. ({str(e)})")
+            errors.append(f"Error on {sport}: {str(e)}")
 
     all_bets.sort(key=lambda x: x["EV %"], reverse=True)
     return all_bets[:30], errors
