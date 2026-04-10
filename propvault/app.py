@@ -6,6 +6,16 @@ from ev_engine import find_ev_bets
 # ── PAGE CONFIG ──────────────────────────────────────────────────────────────
 st.set_page_config(page_title="PropVault", page_icon="🦄", layout="wide")
 
+st.markdown("""
+    <div style="text-align: right; margin-top: -50px; margin-bottom: 20px;">
+        <a href="https://www.buymeacoffee.com/YOUR_USERNAME" target="_blank" style="text-decoration: none;">
+            <span style="color: #94a3b8; font-size: 12px; border: 1px solid #444; padding: 5px 10px; border-radius: 20px; transition: 0.3s;">
+                ☕ Support Server Costs
+            </span>
+        </a>
+    </div>
+""", unsafe_allow_html=True)
+
 # ── CSS (Now includes centering and button heft) ─────────────────────────────
 st.markdown("""
 <style>
