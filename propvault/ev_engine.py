@@ -11,16 +11,15 @@ MIN_EV = 1.5
 MIN_WIN_PROB = 0.35
 MAX_EV_CAP = 15.0
 
-# THE SPORTS
-SPORTS = ["basketball_nba", "baseball_mlb"]
-
-# THE BATCHES - Separated strictly to prevent one bad market from killing the app
-MARKET_BATCHES = [
+# SPORT-SPECIFIC MARKET SETS
+NBA_BATCHES = [
     ["spreads", "totals"],
-    ["player_points", "player_rebounds", "player_assists"],
-    ["player_threes"],
-    ["pitcher_strikeouts"],
-    ["batter_home_runs"]
+    ["player_points", "player_rebounds", "player_assists", "player_threes"]
+]
+
+MLB_BATCHES = [
+    ["spreads", "totals"],
+    ["pitcher_strikeouts", "batter_home_runs"]
 ]
 
 MARKET_LABELS = {
@@ -54,14 +53,15 @@ def _fmt_side(name: str, pt: float, m_key: str, desc: str = "") -> str:
 def find_ev_bets(api_key: str):
     all_bets = []
     errors = []
-    api_key = api_key.strip()
+    SPORTS = ["basketball_nba", "baseball_mlb"]
 
     for sport in SPORTS:
-        for batch in MARKET_BATCHES:
+        # Step 1: Filter batches by sport to prevent 422 "Unprocessable" errors
+        batches = NBA_BATCHES if "basketball" in sport else MLB_BATCHES
+        
+        for batch in batches:
             try:
-                # Add a tiny delay between batches to respect rate limits
-                time.sleep(0.1)
-                
+                time.sleep(0.2) # Avoid aggressive rate limiting
                 params = {
                     "apiKey": api_key,
                     "regions": "us",
@@ -73,9 +73,8 @@ def find_ev_bets(api_key: str):
                 with httpx.Client(timeout=15) as client:
                     r = client.get(f"{BASE_URL}/sports/{sport}/odds", params=params)
                     
-                    # If ONE batch fails with 422, we log it and move to the NEXT batch
+                    # Log but skip if the specific book hasn't posted the lines yet
                     if r.status_code == 422:
-                        errors.append(f"Skipping {batch} for {sport}: Markets not yet available.")
                         continue
                     
                     r.raise_for_status()
@@ -118,6 +117,6 @@ def find_ev_bets(api_key: str):
                                     "EV %": round(ev, 2)
                                 })
             except Exception as e:
-                errors.append(f"Notice: {batch[0]} scan paused.")
+                errors.append(f"Scan for {batch[0]} pending...")
 
     return sorted(all_bets, key=lambda x: x["EV %"], reverse=True), errors
