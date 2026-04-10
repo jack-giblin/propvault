@@ -98,7 +98,7 @@ st.markdown("""
             <span style="font-weight: 800; color: #fff;">3. Ten Ways to Lose:</span> <span style="font-weight: 800; color: #fff;">Pitcher Strikeout Unders</span> are the gold standard. A pitcher hits an Under if they get shelled, hit a pitch count, or the umpire has a tight zone. To hit an Over, they have to be flawless for 6+ innings. <span style="font-weight: 800; color: #7dd3fc;">Bet on the chaos.</span>
         </p>
         <p style="margin-bottom: 12px;">
-            <span style="font-weight: 800; color: #fff;">4. Slanted Props:</span> Books intentionally remove "Under" options or hide "No" props because they are easily manipulated and statistically hit more often. If the scanner finds a <span style="font-weight: 800; color: #fff;">7% Edge on an Under</span>, you've found a line the book is trying to protect.
+            <span style="font-weight: 800; color: #fff;">4. Slanted Props:/span> Basketball showed the <span style="font-weight: 800; color: #fb7185;">worst results</span> for "Over" bettors. If you see a high-EV Under in the NBA, that is the gold standard of this strategy.
         </p>
         <div style="border-top: 1px solid #444; padding-top: 10px; margin-top: 15px;">
             <span style="color: #94a3b8; font-size: 13px; font-style: italic;">
