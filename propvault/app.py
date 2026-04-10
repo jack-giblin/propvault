@@ -128,7 +128,7 @@ st.markdown("""
         <div class="legend-item" style="border-top: 4px solid #7dd3fc;"><div style="color:#7dd3fc; font-size:12px; font-weight:800;">🦄 UNICORN</div><div style="font-weight:700;">7%+ EV</div></div>
     </div>
     <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #1e2a38; font-size: 15px; color: #f1f5f9; font-style: italic; line-height: 1.6;">
-        🔒 <b>PropVault Logic:</b> Built for sustainable growth, not chasing outliers. 
+        🔒 <b>PropVault Logic:</b> PropVault is built for sustainable growth, not chasing outliers. 
         We cap EV at 15% and Win Prob at 40% to filter out "trap" lines and low-liquidity longshots. 
         We focus on high-probability discrepancies where the math is most reliable.
     </div>
