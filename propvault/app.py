@@ -95,7 +95,7 @@ st.markdown("""
             <span style="font-weight: 800; color: #fff;">2. One Path vs. Ten:</span> To hit a player "Over," everything must go perfectly. An <span style="font-weight: 800; color: #fff;">Under</span> wins if there is an injury, foul trouble, a blowout, a coaching change, or a bad shooting night. <i>"There are more ways to lose with an Over than an Under."</i>
         </p>
         <p style="margin-bottom: 12px;">
-            <span style="font-weight: 800; color: #fff;">3. Ten Ways to Lose:</span> <span style="font-weight: 800; color: #fff;">Pitcher Strikeout Unders</span> should not be ignored! A pitcher hits an Under if they get shelled, hit a pitch count, or the umpire has a tight zone. To hit an Over, they have to be flawless for 6+ innings. <span style="font-weight: 800; color: #7dd3fc;">Bet on the chaos.</span>
+            <span style="font-weight: 800; color: #fff;">3. Pitcher Strikeout Unders:</span> <span style="font-weight: 800; color: #fff;">This prop should not be ignored! A pitcher hits an Under if they get shelled, hit a pitch count, or the umpire has a tight zone. To hit an Over, they have to be flawless for 6+ innings. <span style="font-weight: 800; color: #7dd3fc;">Bet on the chaos.</span>
         </p>
         <p style="margin-bottom: 12px;">
             <span style="font-weight: 800; color: #fff;">4. The "Worst" Markets:</span> <span style="font-weight: 900; color: #fff;">Basketball and Hockey</span> showed the worst results for "Over" bettors. These sports are driven by streaks and rotations that the public ignores. If the scanner finds a high-EV Under in the NBA or NHL, that is the gold standard of this strategy.
