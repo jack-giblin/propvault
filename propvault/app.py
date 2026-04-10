@@ -86,23 +86,28 @@ st.markdown("""
 # ── 7. PRO TIPS (The "Under" Bias) ──────────────────────────────────────────
 st.markdown("""
 <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px; border-left: 5px solid #ef4444; margin-bottom: 25px;">
-    <div style="font-size: 18px; font-weight: 800; color: #ef4444; margin-bottom: 15px; letter-spacing: 1px; text-transform: uppercase;">📉 The "Anti-Public" Strategy</div>
+    <div style="font-size: 18px; font-weight: 800; color: #ef4444; margin-bottom: 15px; letter-spacing: 1px; text-transform: uppercase;">📉 THE "ANTI-PUBLIC" STRATEGY</div>
     <div style="font-size: 15px; color: #e2e8f0; line-height: 1.6;">
+        
         <p style="margin-bottom: 12px;">
-            <span style="font-weight: 800; color: #fff;">1. Overs are a Trap:</span> Data on 4,000+ picks shows "Overs" have a <span style="font-weight: 800; color: #fb7185;">-2.26% ROI</span>. The public bets them because "Overs are fun." Books know this and inflate the numbers. <span style="font-weight: 800; color: #4ade80;">Unders showed a +3.33% ROI</span> because they aren't "fun" and the value is ignored.
+            <span style="font-weight: 800; color: #fff;">1. The "Fun" Tax:</span> Data on 4,000+ picks shows "Overs" at a <span style="font-weight: 800; color: #fb7185;">-2.26% ROI</span>. The public bets them because they want a reason to cheer. Books know this and bake in "juice" that only the <span style="font-weight: 800; color: #4ade80;">Under (+3.33% ROI)</span> can exploit.
         </p>
+        
         <p style="margin-bottom: 12px;">
-            <span style="font-weight: 800; color: #fff;">2. The Human Element:</span> A Game Total requires 10+ players to underperform. A <span style="font-weight: 800; color: #fff;">Player Prop Under</span> only requires <i>one</i> human to have a bad night. Between foul trouble, a tight rotation, or just "not having it," individual performance is far more volatile than a team average. <i style="color: #94a3b8;">"There are more ways to lose with an Over than an Under."</i>
+            <span style="font-weight: 800; color: #fff;">2. One Path vs. Ten:</span> To hit a player "Over," everything must go perfectly. An <span style="font-weight: 800; color: #fff;">Under</span> wins if there is an injury, foul trouble, a blowout, a coaching change, or a bad shooting night. <i>"There are more ways to lose with an Over than an Under."</i>
         </p>
+        
         <p style="margin-bottom: 12px;">
-            <span style="font-weight: 800; color: #fff;">3. Ten Ways to Lose:</span> <span style="font-weight: 800; color: #fff;">Pitcher Strikeout Unders</span> are the gold standard. A pitcher hits an Under if he gets shelled, hits a pitch count, gets a blister, or the umpire has a tight zone. To hit an Over, he has to be perfect for 6 innings. <span style="font-weight: 800; color: #7dd3fc;">Bet on the chaos, not the perfection.</span>
+            <span style="font-weight: 800; color: #fff;">3. Ten Ways to Lose:</span> <span style="font-weight: 800; color: #fff;">Pitcher Strikeout Unders</span> are the gold standard. A pitcher hits an Under if they get shelled, hit a pitch count, or the umpire has a tight zone. To hit an Over, they have to be flawless for 6+ innings. <span style="font-weight: 800; color: #7dd3fc;">Bet on the chaos.</span>
         </p>
+        
         <p style="margin-bottom: 12px;">
-            <span style="font-weight: 800; color: #fff;">4. Basketball & Hockey:</span> These sports showed the <span style="font-weight: 800; color: #fb7185;">worst results</span> for "Over" bettors. If you see a high-EV Under in the NBA, that is the gold standard of this strategy.
+            <span style="font-weight: 800; color: #fff;">4. Slanted Props:</span> Books intentionally remove "Under" options or hide "No" props because they are easily manipulated and statistically hit more often. If the scanner finds a <span style="font-weight: 800; color: #fff;">7% Edge on an Under</span>, you've found a line the book is trying to protect.
         </p>
+
         <div style="border-top: 1px solid #444; padding-top: 10px; margin-top: 15px;">
             <span style="color: #94a3b8; font-size: 13px; font-style: italic;">
-                "Life’s too short to bet the Under" is a motto created by sportsbooks to keep you betting on their terms.
+                "Life’s too short to bet the Under" is a marketing slogan designed by sportsbooks to keep you betting on their terms.
             </span>
         </div>
     </div>
