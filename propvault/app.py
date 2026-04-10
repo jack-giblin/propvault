@@ -85,14 +85,26 @@ st.markdown("""
 
 # ── 7. PRO TIPS (The "Under" Bias) ──────────────────────────────────────────
 st.markdown("""
-<div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 10px; border-left: 4px solid #ef4444; margin-bottom: 20px;">
-    <div style="font-size: 16px; font-weight: 700; color: #ef4444; margin-bottom: 10px;">📉 The "Anti-Public" Strategy (Reddit Analysis)</div>
-    <div style="font-size: 13px; color: #cbd5e1; line-height: 1.5;">
-        <p style="margin-bottom: 8px;"><b>1. Overs are a Trap:</b> Data on 4,000+ picks shows "Overs" have a <b>-2.26% ROI</b>. The public bets them because "Overs are fun." Books know this and inflate the numbers. <b>Unders</b> showed a <b>+3.33% ROI</b> because they aren't "fun" and the value is ignored.</p>
-        <p style="margin-bottom: 8px;"><b>2. More Ways to Win:</b> An "Over" requires a perfect game. An <b>Under</b> wins if there is an injury, foul trouble, a blowout, a coaching change, or just a bad shooting day. <i>"There are more ways to lose with an Over than an Under."</i></p>
-        <p style="margin-bottom: 8px;"><b>3. Ten Ways to Lose:</b> Pitcher Strikeout <b>Unders</b> are the gold standard. A pitcher hits an Under if he gets shelled, hits a pitch count, gets a blister, or the umpire has a tight zone. To hit an Over, he has to be perfect for 6 innings. <i>Bet on the chaos, not the perfection.</i></p>
-        <p style="margin-bottom: 8px;"><b>4. Basketball & Hockey:</b> These sports showed the <b>worst results</b> for "Over" bettors. If you see a high-EV Under in the NBA, that is the gold standard of this strategy.</p>
-        <p style="font-style: italic; color: #94a3b8; font-size: 12px; border-top: 1px solid #444; padding-top: 8px; margin-top: 8px;">"Life’s too short to bet the Under" is a motto created by sportsbooks to keep you betting on their terms.</p>
+<div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px; border-left: 5px solid #ef4444; margin-bottom: 25px;">
+    <div style="font-size: 18px; font-weight: 800; color: #ef4444; margin-bottom: 15px; letter-spacing: 1px; text-transform: uppercase;">📉 The "Anti-Public" Strategy</div>
+    <div style="font-size: 15px; color: #e2e8f0; line-height: 1.6;">
+        <p style="margin-bottom: 12px;">
+            <span style="font-weight: 800; color: #fff;">1. Overs are a Trap:</span> Data on 4,000+ picks shows "Overs" have a <span style="font-weight: 800; color: #fb7185;">-2.26% ROI</span>. The public bets them because "Overs are fun." Books know this and inflate the numbers. <span style="font-weight: 800; color: #4ade80;">Unders showed a +3.33% ROI</span> because they aren't "fun" and the value is ignored.
+        </p>
+        <p style="margin-bottom: 12px;">
+            <span style="font-weight: 800; color: #fff;">2. More Ways to Win:</span> An "Over" requires a perfect game. An <span style="font-weight: 800; color: #fff;">Under</span> wins if there is an injury, foul trouble, a blowout, a coaching change, or just a bad shooting day. <i style="color: #94a3b8;">"There are more ways to lose with an Over than an Under."</i>
+        </p>
+        <p style="margin-bottom: 12px;">
+            <span style="font-weight: 800; color: #fff;">3. Ten Ways to Lose:</span> <span style="font-weight: 800; color: #fff;">Pitcher Strikeout Unders</span> are the gold standard. A pitcher hits an Under if he gets shelled, hits a pitch count, gets a blister, or the umpire has a tight zone. To hit an Over, he has to be perfect for 6 innings. <span style="font-weight: 800; color: #7dd3fc;">Bet on the chaos, not the perfection.</span>
+        </p>
+        <p style="margin-bottom: 12px;">
+            <span style="font-weight: 800; color: #fff;">4. Basketball & Hockey:</span> These sports showed the <span style="font-weight: 800; color: #fb7185;">worst results</span> for "Over" bettors. If you see a high-EV Under in the NBA, that is the gold standard of this strategy.
+        </p>
+        <div style="border-top: 1px solid #444; padding-top: 10px; margin-top: 15px;">
+            <span style="color: #94a3b8; font-size: 13px; font-style: italic;">
+                "Life’s too short to bet the Under" is a motto created by sportsbooks to keep you betting on their terms.
+            </span>
+        </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
