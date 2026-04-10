@@ -115,7 +115,7 @@ def find_ev_bets(api_key: str) -> tuple[list[dict], list[str]]:
                             })
 
             # 2. Process Player Props
-            for event in bulk_events[:8]: # Limit to next 8 games to save API quota
+            for event in bulk_events[:20]: # Limit to next 8 games to save API quota
                 prop_bms = fetch_event_props(api_key, sport, event["id"])
                 p_pin = next((b for b in prop_bms if b["key"] == SHARP_BOOK), None)
                 p_nov = next((b for b in prop_bms if b["key"] == TARGET_BOOK), None)
