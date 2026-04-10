@@ -178,7 +178,7 @@ st.markdown(f"""
     <div class="pv-logo">
         <div>
             <div class="pv-logo-name">PropVault</div>
-            <div style="color:#475569; font-size:14px; font-weight:500;">PropVault identifies price discrepancies by cross-referencing Pinnacle's sharp-market liquidity against Novig's live lines. When the "Fair Value" price is lower than the available odds, you have a mathematical edge.</div>
+            <div style="color:#475569; font-size:14px; font-weight:500;">When the "Fair Value" price is lower than the available odds, you have a mathematical edge.</div>
         </div>
     </div>
     <div style="display:flex; gap:15px; align-items:center;">
@@ -210,9 +210,10 @@ st.markdown("""
     <h3 style="color:#ef4444; margin:0 0 10px 0; font-size:18px; font-weight:900;">📉 The "Anti-Public" Strategy</h3>
     <p style="color:#94a3b8; font-size:14px; line-height:1.7; margin:0;">
         Data confirms: <span class="s-stat-over">Overs return -2.26% ROI</span> while 
-        <span class="s-stat-under">Unders return +3.33% ROI</span>. "An Over almost always requires flawless play. "
-    "An Under wins if there is an injury, blowout, foul trouble, or just a bad night. "
-    "*Bet on the chaos, not the perfection.*"
+        <span class="s-stat-under">Unders return +3.33% ROI</span>.
+        An <b>Over</b> almost always requires flawless play. 
+        An <b>Under</b> wins if there is an injury, blowout, foul trouble, or just a bad night. 
+        <i>Bet on the chaos, not the perfection.</i>
     </p>
 </div>
 """, unsafe_allow_html=True)
