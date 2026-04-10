@@ -6,18 +6,18 @@ from ev_engine import find_ev_bets
 # ── PAGE CONFIG ──────────────────────────────────────────────────────────────
 st.set_page_config(page_title="PropVault", page_icon="🦄", layout="wide")
 
-# ── HEADER & DONATION ────────────────────────────────────────────────────────
+# ── DONATION ─────────────────────────────────────────────────────────────────
 st.markdown("""
     <div style="display: flex; justify-content: flex-end; padding-top: 60px; margin-bottom: -45px;">
         <a href="https://www.buymeacoffee.com/notjxck" target="_blank" style="text-decoration: none;">
-            <div style="color: #ffffff; font-size: 13px; border: 1px solid #7dd3fc; padding: 10px 20px; border-radius: 25px; background: rgba(125, 211, 252, 0.1); font-weight: 800; box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);">
+            <div style="color: #ffffff; font-size: 13px; border: 1px solid #7dd3fc; padding: 10px 20px; border-radius: 25px; background: rgba(125, 211, 252, 0.1); font-weight: 800; letter-spacing: 0.5px; transition: 0.3s; box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);">
                 🍺 Buy me a beer to support the server
             </div>
         </a>
     </div>
 """, unsafe_allow_html=True)
 
-# ── CSS ──────────────────────────────────────────────────────────────────────
+# ── CSS (Full Styles Restored) ───────────────────────────────────────────────
 st.markdown("""
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -32,11 +32,12 @@ st.markdown("""
     background: #131920 !important; border: 2px solid #7dd3fc !important;
     border-radius: 16px !important; color: #7dd3fc !important;
     font-weight: 900 !important; font-size: 18px !important;
-    text-transform: uppercase !important; transition: 0.3s;
+    text-transform: uppercase !important; letter-spacing: 1px !important;
+    box-shadow: 0 0 15px rgba(125, 211, 252, 0.1); transition: all 0.3s ease;
   }
   div.stButton > button:hover { transform: scale(1.02); box-shadow: 0 0 25px rgba(125, 211, 252, 0.3); }
   .guide-container { background: #131920; border: 1px solid #1e2a38; border-radius: 24px; padding: 32px; margin-bottom: 20px; }
-  .legend-item { background: #1e293b; border-radius: 16px; padding: 16px; flex: 1; border: 1px solid #334155; text-align: center; }
+  .legend-item { background: #1e293b; border-radius: 16px; padding: 16px; flex: 1; min-width: 150px; border: 1px solid #334155; text-align: center; }
   .bet-card { background: #131920; border: 1px solid #1e2a38; border-radius: 20px; padding: 24px; margin-bottom: 16px; display: flex; align-items: center; gap: 24px; }
   .bet-side { font-size: 20px; font-weight: 800; color: #f1f5f9; }
 </style>
@@ -56,7 +57,7 @@ if "last_run" not in st.session_state: st.session_state["last_run"] = None
 st.markdown("""
     <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px;">
         <img src="https://img.icons8.com/fluency/96/unicorn.png" style="width: 65px; height: 65px;">
-        <h1 style="background: linear-gradient(90deg, #7dd3fc 0%, #ffffff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 48px; font-weight: 900;">PropVault</h1>
+        <h1 style="background: linear-gradient(90deg, #7dd3fc 0%, #ffffff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 48px; font-weight: 900; letter-spacing: -1.5px; margin: 0;">PropVault</h1>
     </div>
 """, unsafe_allow_html=True)
 
@@ -64,24 +65,23 @@ st.markdown("""
 st.markdown("""
 <div class="guide-container">
     <div style="font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 10px;">🚀 Strategy & Tier Guide</div>
+    <div style="color: #f1f5f9; margin-bottom: 24px;">PropVault identifies discrepancies by cross-referencing Pinnacle’s sharp-market liquidity against Draftkings' live lines.</div>
     <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 25px;">
-        <div class="legend-item" style="border-top: 4px solid #94a3b8;"><div style="color:#94a3b8; font-size:12px; font-weight:800;">STANDARD</div><div>2% - 5% EV</div></div>
-        <div class="legend-item" style="border-top: 4px solid #facc15;"><div style="color:#facc15; font-size:12px; font-weight:800;">PREMIUM</div><div>5% - 7% EV</div></div>
-        <div class="legend-item" style="border-top: 4px solid #7dd3fc;"><div style="color:#7dd3fc; font-size:12px; font-weight:800;">🦄 UNICORN</div><div>7%+ EV</div></div>
-    </div>
-    <div style="border-top: 1px solid #1e2a38; padding-top: 15px; font-size: 15px; color: #f1f5f9;">
-        🔒 <b>PropVault Logic:</b> We cap EV at 15% to filter out "trap" lines and low-liquidity longshots.
+        <div class="legend-item" style="border-top: 4px solid #94a3b8;"><div style="color:#94a3b8; font-size:12px; font-weight:800;">STANDARD</div><div style="font-weight:700;">2% - 5% EV</div></div>
+        <div class="legend-item" style="border-top: 4px solid #facc15;"><div style="color:#facc15; font-size:12px; font-weight:800;">PREMIUM</div><div style="font-weight:700;">5% - 7% EV</div></div>
+        <div class="legend-item" style="border-top: 4px solid #7dd3fc;"><div style="color:#7dd3fc; font-size:12px; font-weight:800;">🦄 UNICORN</div><div style="font-weight:700;">7%+ EV</div></div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── PRO TIPS ─────────────────────────────────────────────────────────────────
+# ── FULL PRO TIPS (The "Under" Bias Restored) ────────────────────────────────
 st.markdown("""
 <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px; border-left: 5px solid #ef4444; margin-bottom: 25px;">
-    <div style="font-size: 18px; font-weight: 800; color: #ef4444; margin-bottom: 10px;">📉 THE "ANTI-PUBLIC" STRATEGY</div>
-    <div style="font-size: 15px; color: #e2e8f0;">
-        <b>1. The "Fun" Tax:</b> Books juice "Overs" because the public loves to cheer for action. <b>Unders</b> exploit this juice. <br>
-        <b>2. One Path vs. Ten:</b> An Over needs perfection; an Under wins via injury, blowout, foul trouble, or a bad night.
+    <div style="font-size: 18px; font-weight: 800; color: #ef4444; margin-bottom: 15px; letter-spacing: 1px; text-transform: uppercase;">📉 THE "ANTI-PUBLIC" STRATEGY</div>
+    <div style="font-size: 15px; color: #e2e8f0; line-height: 1.6;">
+        <p style="margin-bottom: 12px;"><span style="font-weight: 800; color: #fff;">1. The "Fun" Tax:</span> "Overs" carry a fun tax. Books bake in juice because people want to cheer for points. The <b>Under</b> exploits this.</p>
+        <p style="margin-bottom: 12px;"><span style="font-weight: 800; color: #fff;">2. One Path vs. Ten:</span> To hit an Over, everything must go perfectly. An <b>Under</b> wins if there is an injury, blowout, foul trouble, or a bad night.</p>
+        <p style="margin-bottom: 12px;"><span style="font-weight: 800; color: #fff;">3. Pitcher Strikeout Unders:</span> A pitcher hits an Under if they get shelled or hit a pitch count. Over requires flawless play for 6+ innings.</p>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -104,15 +104,16 @@ if st.session_state["last_run"]:
 bets = st.session_state["bets"]
 
 if not bets:
-    st.markdown("<div style='text-align:center; padding:60px; color:#334155;'>Click the button to scan for market anomalies.</div>", unsafe_allow_html=True)
+    st.markdown("<div style='text-align:center; padding:60px; color:#334155;'>No anomalies found. Try again in a few minutes.</div>", unsafe_allow_html=True)
 else:
     for bet in bets:
         ev = bet["EV %"]
         color = "#7dd3fc" if ev >= 7 else "#facc15" if ev >= 5 else "#94a3b8"
+        bg = "rgba(125, 211, 252, 0.05)" if ev >= 7 else "transparent"
         label = "🦄 UNICORN" if ev >= 7 else "🔥 PREMIUM" if ev >= 5 else "📊 STANDARD"
 
         st.markdown(f"""
-        <div class="bet-card" style="border-left: 6px solid {color}; background: rgba(125, 211, 252, 0.05);">
+        <div class="bet-card" style="border-left: 6px solid {color}; background: {bg};">
           <div style="flex: 1;">
             <div style="color: {color}; font-weight: 900; font-size: 12px; margin-bottom: 4px;">{label}</div>
             <div class="bet-side">{bet["Side"]}</div>
@@ -124,7 +125,7 @@ else:
           </div>
           <div style="text-align: right;">
             <div style="font-size: 32px; font-weight: 900; color: {color};">+{ev}%</div>
-            <div style="color: #64748b; font-size: 11px; font-weight: 700;">EXPECTED VALUE</div>
+            <div style="color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase;">Expected Value</div>
           </div>
         </div>
         """, unsafe_allow_html=True)
