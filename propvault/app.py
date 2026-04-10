@@ -83,6 +83,19 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# ── 7. PRO TIPS (The "Under" Bias) ──────────────────────────────────────────
+st.markdown("""
+<div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 10px; border-left: 4px solid #7dd3fc; margin-bottom: 20px;">
+    <div style="font-size: 16px; font-weight: 700; color: #7dd3fc; margin-bottom: 10px;">💡 The PropVault Edge: Why We Fade the Public</div>
+    <div style="font-size: 13px; color: #cbd5e1; line-height: 1.5;">
+        <p style="margin-bottom: 8px;"><b>1. The "Under" Advantage:</b> Public bettors love "Overs" because they want to root for action. Books shade their lines higher to account for this. <i>Mathematically, there are more ways to win an Under (injury, foul trouble, blowouts, cold shooting) than an Over.</i></p>
+        <p style="margin-bottom: 8px;"><b>2. Rebound & Strikeout Unders:</b> These are the gold standard. Rebounds rely on pace and miss-frequency; Strikeouts rely on pitch counts and staying in the game. Both are fragile for the athlete, but robust for the bettor.</p>
+        <p style="margin-bottom: 8px;"><b>3. The Usage Lag:</b> When a star sits, books are slow to adjust the rest of the team. Look for <b>Overs</b> on secondary players—this is the rare time the Over has true value.</p>
+        <p style="font-style: italic; color: #94a3b8; font-size: 12px;">"Life is too short to bet the Under" is a motto for losers. Real traders follow the ROI.</p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 # ── THE BUTTON (Centered with Spacers) ───────────────────────────────────────
 _, center_col, _ = st.columns([1, 2, 1])
 with center_col:
