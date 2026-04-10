@@ -199,9 +199,9 @@ st.markdown("""
     <p style="color:#94a3b8; font-size:14px; line-height:1.7; margin:0;">
         Data confirms: <span class="s-stat-over">Overs return -2.26% ROI</span> while 
         <span class="s-stat-under">Unders return +3.33% ROI</span>.
-        An <b>Over</b> almost always requires flawless play. 
-        An <b>Under</b> wins if there is an injury, blowout, foul trouble, or just a bad night. 
-        <i>Bet on the chaos, not the perfection.</i>
+        An <span style="color:#ffffff; font-weight:700;">Over</span> almost always requires flawless play. 
+        An <span style="color:#ffffff; font-weight:700;">Under</span> wins if there is an injury, blowout, foul trouble, or just a bad night. 
+        <span style="color:#ffffff; font-style:italic;">Bet on the chaos, not the perfection.</span>
     </p>
 </div>
 """, unsafe_allow_html=True)
