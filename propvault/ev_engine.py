@@ -51,23 +51,26 @@ def _fmt_side(name: str, point: float, market_key: str, description: str = "") -
 def find_ev_bets(api_key):
     all_bets = []
     errors = []
+    
+    # WE BATCH EVERYTHING: This allows 1 credit to cover all these markets
     target_markets = "h2h,spreads,totals,player_points,player_assists,pitcher_strikeouts"
     
-    for sport in ["basketball_nba", "baseball_mlb"]:
-        # Use the EXACT URL from their website example
+    # We only loop through the SPORTS, not the markets.
+    for sport in ["basketball_nba", "baseball_mlb"]: 
         url = f"https://parlay-api.com/v1/sports/{sport}/odds"
+        
         params = {
             "apiKey": api_key,
             "regions": "us",
-            "markets": target_markets,
+            "markets": target_markets, # ALL markets in one go
             "oddsFormat": "american"
         }
         
         try:
-            response = requests.get(url, params=params, timeout=15)
-            if response.status_code != 200:
-                continue
-
+            # This is 1 Credit per sport (Total: 2 Credits)
+            response = requests.get(url, params=params, timeout=10)
+            if response.status_code != 200: continue
+            
             events = response.json()
             for event in events:
                 # FIX: Use 'title' and lowercase it to match your SHARP_BOOK variable
