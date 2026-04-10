@@ -4,6 +4,7 @@ All math and Odds API fetching lives here.
 """
 
 import httpx
+from datetime import datetime, timezone
 from typing import Optional
 
 BASE_URL = "https://api.the-odds-api.com/v4"
@@ -132,6 +133,15 @@ def find_ev_bets(api_key: str) -> tuple[list[dict], list[str]]:
                 continue
 
             for event in events:
+                # Skip games that have already started (live lines are unreliable)
+                commence = event.get("commence_time", "")
+                try:
+                    game_time = datetime.fromisoformat(commence.replace("Z", "+00:00"))
+                    if game_time < datetime.now(timezone.utc):
+                        continue
+                except Exception:
+                    pass
+
                 game = f"{event['away_team']} vs {event['home_team']}"
                 pinnacle = _get_book(event, SHARP_BOOK)
                 novig    = _get_book(event, TARGET_BOOK)
