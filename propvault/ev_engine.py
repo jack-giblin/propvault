@@ -3,157 +3,141 @@ from typing import List, Dict, Tuple
 
 BASE_URL = "https://api.the-odds-api.com/v4"
 
-# Config
+# ── CONFIG ─────────────────────────────────────────────
 MIN_EV = 0.5
 MAX_EV_CAP = 15.0
-MIN_WIN_PROB = 0.40  # don't filter too early
+MIN_WIN_PROB = 0.40
 
 SHARP_BOOK = "pinnacle"
 TARGET_BOOK = "novig"
 
-SPORT = "basketball_nba"  # focus NBA only for now
+SPORTS = ["basketball_nba", "baseball_mlb"]
 
 PROP_MARKETS = [
     "player_rebounds",
-    "player_assists"
+    "player_assists",
+    "player_strikeouts"  # MLB only, safely ignored if not present
 ]
 
-ONLY_UNDERS = False  # flip to True if you want ONLY unders
+# ── MATH ───────────────────────────────────────────────
 
-# ── Math ─────────────────────────────────────────
+def american_to_decimal(o: float) -> float:
+    return o / 100 + 1 if o > 0 else 100 / abs(o) + 1
 
-def american_to_decimal(odds: float) -> float:
-    return odds / 100 + 1 if odds > 0 else 100 / abs(odds) + 1
 
-def no_vig_probs(over_odds: float, under_odds: float) -> Tuple[float, float]:
-    p_over = 1 / american_to_decimal(over_odds)
-    p_under = 1 / american_to_decimal(under_odds)
-    total = p_over + p_under
-    return p_over / total, p_under / total
+def no_vig_prob(odds_a: float, odds_b: float) -> Tuple[float, float]:
+    pa = 1 / american_to_decimal(odds_a)
+    pb = 1 / american_to_decimal(odds_b)
+    total = pa + pb
+    return pa / total, pb / total
 
-def calc_ev(prob: float, odds: float) -> float:
-    dec = american_to_decimal(odds)
-    return (prob * dec - 1) * 100
 
 def fmt_odds(o: float) -> str:
     return f"+{int(o)}" if o > 0 else str(int(o))
 
-# ── Core Engine ──────────────────────────────────
+
+# ── ENGINE ─────────────────────────────────────────────
 
 def find_ev_bets(api_key: str):
-
     all_bets = []
     errors = []
 
-    try:
-        events = requests.get(
-            f"{BASE_URL}/sports/{SPORT}/events",
-            params={"apiKey": api_key},
-            timeout=10
-        ).json()
-
-        for event in events:
-
-            game = f"{event['away_team']} @ {event['home_team']}"
-
-            odds_data = requests.get(
-                f"{BASE_URL}/sports/{SPORT}/events/{event['id']}/odds",
-                params={
-                    "apiKey": api_key,
-                    "regions": "us,eu",
-                    "markets": ",".join(PROP_MARKETS),
-                    "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}",
-                    "oddsFormat": "american"
-                },
+    for sport in SPORTS:
+        try:
+            events = requests.get(
+                f"{BASE_URL}/sports/{sport}/events",
+                params={"apiKey": api_key},
                 timeout=10
             ).json()
 
-            books = {b['key']: b for b in odds_data.get('bookmakers', [])}
+            for event in events:
 
-            # REQUIRE BOTH BOOKS (your core philosophy)
-            if SHARP_BOOK not in books or TARGET_BOOK not in books:
-                continue
-
-            pin_markets = books[SHARP_BOOK]['markets']
-            nov_markets = books[TARGET_BOOK]['markets']
-
-            # Loop through Pinnacle markets
-            for pin_mkt in pin_markets:
-
-                # Find matching market in Novig
-                nov_mkt = next(
-                    (m for m in nov_markets if m['key'] == pin_mkt['key']),
-                    None
-                )
-                if not nov_mkt:
+                event_id = event.get("id")
+                if not event_id:
                     continue
 
-                # Group Pinnacle outcomes by player + point
-                grouped = {}
+                odds = requests.get(
+                    f"{BASE_URL}/sports/{sport}/events/{event_id}/odds",
+                    params={
+                        "apiKey": api_key,
+                        "regions": "us,eu",
+                        "markets": ",".join(PROP_MARKETS),
+                        "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}",
+                        "oddsFormat": "american"
+                    },
+                    timeout=10
+                ).json()
 
-                for o in pin_mkt['outcomes']:
-                    player = o['description']
-                    point = o.get('point')
-                    side = o['name']  # Over / Under
+                books = {b["key"]: b for b in odds.get("bookmakers", [])}
 
-                    key = (player, point)
+                if SHARP_BOOK not in books or TARGET_BOOK not in books:
+                    continue
 
-                    if key not in grouped:
-                        grouped[key] = {}
+                sharp_books = books[SHARP_BOOK].get("markets", [])
+                target_books = books[TARGET_BOOK].get("markets", [])
 
-                    grouped[key][side] = o
+                for sharp_mkt in sharp_books:
 
-                # Evaluate each player prop
-                for (player, point), sides in grouped.items():
+                    target_mkt = next(
+                        (m for m in target_books if m["key"] == sharp_mkt["key"]),
+                        None
+                    )
 
-                    if "Over" not in sides or "Under" not in sides:
+                    if not target_mkt:
                         continue
 
-                    pin_over = sides["Over"]['price']
-                    pin_under = sides["Under"]['price']
+                    # ── FIX: correct pairing using description + point + side ──
+                    sharp_map = {}
+                    for o in sharp_mkt["outcomes"]:
+                        key = (o["description"], o["name"], o.get("point"))
+                        sharp_map[key] = o
 
-                    fair_over, fair_under = no_vig_probs(pin_over, pin_under)
+                    target_map = {}
+                    for o in target_mkt["outcomes"]:
+                        key = (o["description"], o["name"], o.get("point"))
+                        target_map[key] = o
 
-                    # Now match with Novig
-                    for n in nov_mkt['outcomes']:
-                        if n['description'] != player:
-                            continue
-                        if n.get('point') != point:
-                            continue
+                    for key, target_outcome in target_map.items():
 
-                        side = n['name']
-                        odds = n['price']
+                        player, side, point = key
+                        opp_side = "Under" if side == "Over" else "Over"
+                        opp_key = (player, opp_side, point)
 
-                        # Optional filter: ONLY UNDERS
-                        if ONLY_UNDERS and side != "Under":
-                            continue
-
-                        if side == "Over":
-                            prob = fair_over
-                        else:
-                            prob = fair_under
-
-                        ev = calc_ev(prob, odds)
-
-                        if ev < MIN_EV or ev > MAX_EV_CAP:
+                        if key not in sharp_map or opp_key not in sharp_map:
                             continue
 
-                        if prob < MIN_WIN_PROB:
+                        sharp_price = sharp_map[key]["price"]
+                        sharp_opp_price = sharp_map[opp_key]["price"]
+
+                        fair_prob_over, fair_prob_under = no_vig_prob(
+                            sharp_price,
+                            sharp_opp_price
+                        )
+
+                        fair_prob = fair_prob_over if side == "Over" else fair_prob_under
+
+                        if fair_prob < MIN_WIN_PROB:
+                            continue
+
+                        target_price = target_outcome["price"]
+                        ev = (fair_prob * american_to_decimal(target_price) - 1) * 100
+
+                        if not (MIN_EV <= ev <= MAX_EV_CAP):
                             continue
 
                         all_bets.append({
-                            "Game": game,
-                            "Market": pin_mkt['key'].replace("player_", "").replace("_", " ").title(),
+                            "Sport": sport.split("_")[1].upper(),
+                            "Game": f"{event.get('away_team')} @ {event.get('home_team')}",
+                            "Market": sharp_mkt["key"].replace("player_", "").replace("_", " ").title(),
                             "Player": player,
                             "Side": f"{side} {point}",
-                            "Target Odds": fmt_odds(odds),
-                            "Fair Odds": fmt_odds(pin_over if side == "Over" else pin_under),
-                            "Win Prob": round(prob * 100, 2),
+                            "Target Odds": fmt_odds(target_price),
+                            "Fair Odds": fmt_odds(sharp_price),
                             "EV %": round(ev, 2)
                         })
 
-    except Exception as e:
-        errors.append(str(e))
+        except Exception as e:
+            errors.append(f"{sport}: {str(e)}")
 
     all_bets.sort(key=lambda x: x["EV %"], reverse=True)
 
