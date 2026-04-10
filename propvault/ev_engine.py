@@ -3,15 +3,13 @@ from typing import Tuple
 
 BASE_URL = "https://api.the-odds-api.com/v4"
 
-# ── CONFIG ─────────────────────────────────────────
-
+# ── CONFIG ────────────────────────────────
 MIN_EV = 0.5
 MAX_EV_CAP = 15.0
+MIN_WIN_PROB = 0.40
 
 SHARP_BOOK = "pinnacle"
 TARGET_BOOK = "novig"
-
-MIN_WIN_PROB = 0.40  # sanity filter (keeps lines realistic)
 
 SPORTS = ["basketball_nba"]
 
@@ -20,12 +18,12 @@ PROP_MARKETS = [
     "player_assists"
 ]
 
-# ── MATH ─────────────────────────────────────────
+# ── MATH ────────────────────────────────
 
 def american_to_decimal(o: float) -> float:
     return o / 100 + 1 if o > 0 else 100 / abs(o) + 1
 
-def no_vig_probs(over_odds: float, under_odds: float) -> Tuple[float, float]:
+def no_vig_prob(over_odds: float, under_odds: float) -> Tuple[float, float]:
     p_over = 1 / american_to_decimal(over_odds)
     p_under = 1 / american_to_decimal(under_odds)
     total = p_over + p_under
@@ -38,21 +36,7 @@ def calc_ev(prob: float, odds: float) -> float:
 def fmt_odds(o: float) -> str:
     return f"+{int(o)}" if o > 0 else str(int(o))
 
-# ── BACKEND INTELLIGENCE ─────────────────────────
-
-def ev_tier(ev: float) -> str:
-    if ev >= 7:
-        return "UNICORN"
-    elif ev >= 5:
-        return "PREMIUM"
-    elif ev >= 2:
-        return "STANDARD"
-    return "LOW"
-
-def edge_score(ev: float, prob: float) -> float:
-    return ev * prob  # OddsJam-lite ranking logic
-
-# ── ENGINE ────────────────────────────────────────
+# ── ENGINE ────────────────────────────────
 
 def find_ev_bets(api_key: str):
     all_bets = []
@@ -69,7 +53,7 @@ def find_ev_bets(api_key: str):
             for event in events:
                 game = f"{event['away_team']} @ {event['home_team']}"
 
-                odds_data = requests.get(
+                odds = requests.get(
                     f"{BASE_URL}/sports/{sport}/events/{event['id']}/odds",
                     params={
                         "apiKey": api_key,
@@ -81,7 +65,7 @@ def find_ev_bets(api_key: str):
                     timeout=10
                 ).json()
 
-                books = {b['key']: b for b in odds_data.get('bookmakers', [])}
+                books = {b['key']: b for b in odds.get('bookmakers', [])}
 
                 if SHARP_BOOK not in books or TARGET_BOOK not in books:
                     continue
@@ -98,16 +82,12 @@ def find_ev_bets(api_key: str):
                     if not nov_mkt:
                         continue
 
+                    # GROUP by player + point
                     grouped = {}
 
                     for o in pin_mkt['outcomes']:
-                        player = o['description']
-                        point = o.get('point')
-                        side = o['name']
-
-                        key = (player, point)
-
-                        grouped.setdefault(key, {})[side] = o
+                        key = (o['description'], o.get('point'))
+                        grouped.setdefault(key, {})[o['name']] = o
 
                     for (player, point), sides in grouped.items():
 
@@ -117,7 +97,7 @@ def find_ev_bets(api_key: str):
                         pin_over = sides["Over"]["price"]
                         pin_under = sides["Under"]["price"]
 
-                        fair_over, fair_under = no_vig_probs(pin_over, pin_under)
+                        fair_over, fair_under = no_vig_prob(pin_over, pin_under)
 
                         for n in nov_mkt['outcomes']:
 
@@ -138,25 +118,22 @@ def find_ev_bets(api_key: str):
                             if prob < MIN_WIN_PROB:
                                 continue
 
-                            score = edge_score(ev, prob)
-
                             all_bets.append({
                                 "Sport": "NBA",
                                 "Game": game,
-                                "Market": pin_mkt['key'].replace("player_", "").replace("_", " ").title(),
+                                "Market": pin_mkt['key']
+                                    .replace("player_", "")
+                                    .replace("_", " ")
+                                    .title(),
                                 "Player": player,
                                 "Side": f"{side} {point}",
                                 "Target Odds": fmt_odds(odds),
                                 "Fair Odds": fmt_odds(pin_over if side == "Over" else pin_under),
-                                "EV %": round(ev, 2),
-
-                                # backend-only fields (safe)
-                                "Tier": ev_tier(ev),
-                                "_score": round(score, 4)
+                                "EV %": round(ev, 2)
                             })
 
         except Exception as e:
-            errors.append(f"{sport}: {str(e)}")
+            errors.append(str(e))
 
-    all_bets.sort(key=lambda x: x.get("_score", x["EV %"]), reverse=True)
+    all_bets.sort(key=lambda x: x["EV %"], reverse=True)
     return all_bets, errors
