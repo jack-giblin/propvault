@@ -11,7 +11,7 @@ MIN_EV = 1.5
 SHARP_BOOK = "pinnacle"
 TARGET_BOOK = "novig"
 SPORTS = ["baseball_mlb", "basketball_nba"]
-MARKETS = ["h2h", "spreads", "totals"]
+MARKETS = ["h2h"]  # spreads/totals added once line-matching is validated
 
 SPORT_LABELS = {
     "baseball_mlb": "MLB",
@@ -89,6 +89,26 @@ def _outcomes_map(market: dict) -> dict[str, float]:
     return {o["name"]: o["price"] for o in market.get("outcomes", [])}
 
 
+def _outcomes_point_map(market: dict) -> dict[str, tuple[float, float]]:
+    """For spreads/totals: map outcome name → (price, point) so we can match on point value."""
+    result = {}
+    for o in market.get("outcomes", []):
+        result[o["name"]] = (o["price"], o.get("point", 0))
+    return result
+
+
+def _lines_match(pin_map: dict, nov_map: dict, market_key: str) -> bool:
+    """
+    For spreads and totals, both books must post the same point values.
+    If they differ, the lines aren't comparable and we skip.
+    """
+    if market_key not in ("spreads", "totals"):
+        return True
+    pin_points = {name: pt for name, (_, pt) in pin_map.items()}
+    nov_points = {name: pt for name, (_, pt) in nov_map.items()}
+    return pin_points == nov_points
+
+
 # ── Core pipeline ─────────────────────────────────────────────────────────────
 
 def find_ev_bets(api_key: str) -> tuple[list[dict], list[str]]:
@@ -123,22 +143,30 @@ def find_ev_bets(api_key: str) -> tuple[list[dict], list[str]]:
                 if not pin_mkt or not nov_mkt:
                     continue
 
-                pin_map = _outcomes_map(pin_mkt)
-                nov_map = _outcomes_map(nov_mkt)
+                pin_map = _outcomes_point_map(pin_mkt)
+                nov_map = _outcomes_point_map(nov_mkt)
+
+                # Skip if fewer than 2 Pinnacle sides or books post different lines
                 if len(pin_map) != 2:
+                    continue
+                if not _lines_match(pin_map, nov_map, market):
                     continue
 
                 sides = list(pin_map.keys())
-                fair_a, fair_b = no_vig_prob(pin_map[sides[0]], pin_map[sides[1]])
+                pin_price_a = pin_map[sides[0]][0]
+                pin_price_b = pin_map[sides[1]][0]
+                fair_a, fair_b = no_vig_prob(pin_price_a, pin_price_b)
                 fair_map = {sides[0]: fair_a, sides[1]: fair_b}
 
                 for side, fair_prob in fair_map.items():
                     if side not in nov_map:
                         continue
-                    nov_price   = nov_map[side]
+                    nov_price   = nov_map[side][0]
                     nov_decimal = american_to_decimal(nov_price)
                     ev          = calc_ev(fair_prob, nov_decimal)
-                    if ev < MIN_EV:
+
+                    # Sanity cap — real +EV bets don't exceed 15%
+                    if ev < MIN_EV or ev > 15:
                         continue
 
                     all_bets.append({
