@@ -90,11 +90,8 @@ st.markdown("""
     <div style="font-size: 18px; font-weight: 800; color: #ef4444; margin-bottom: 12px; letter-spacing: 1px;">📉 THE "ANTI-PUBLIC" EDGE</div>
     <div style="font-size: 14px; color: #cbd5e1; line-height: 1.6;">
         <p style="margin-bottom: 10px;"><b>1. The ROI Gap:</b> Statistical analysis of 4,000+ picks shows "Overs" at a <b>-2.26% ROI</b> while "Unders" hit <b>+3.33%</b>. The public bets Overs because it's "fun" to root for points. <b>We don't bet for fun; we bet for the gap.</b></p>
-        
         <p style="margin-bottom: 10px;"><b>2. The Strikeout Trap:</b> Pitcher Strikeout <b>Unders</b> are a gold mine. A pitcher can stay Under for a dozen reasons: pitch counts, a tight umpire zone, early exits, or just getting shelled. There is only <i>one</i> way to hit an Over.</p>
-        
         <p style="margin-bottom: 10px;"><b>3. Paths to Victory:</b> An "Under" is winning the moment the game starts. You only lose if the player performs perfectly. "Overs" require a player to overcome a laundry list of adversity (fouls, injuries, blowouts) that sportsbooks don't always price correctly.</p>
-        
         <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; border: 1px solid #444;">
             <span style="color: #94a3b8; font-size: 12px; font-style: italic;">
                 "Life’s too short to bet the Under" is a marketing slogan designed by sportsbooks to keep you betting on their terms. In PropVault, we follow the math.
