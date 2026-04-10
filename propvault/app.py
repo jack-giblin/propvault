@@ -170,7 +170,7 @@ with center_col:
     # Small UI touch: show how long until the next fresh data is available
     st.markdown("<div style='text-align:center; color:#475569; font-size:11px; margin-bottom:-15px;'>API Data cached for 2 mins</div>", unsafe_allow_html=True)  
     if st.button("🦄 HUNT FOR UNICORNS"):
-    with st.spinner("Analyzing Markets..."):
+        with st.spinner("Analyzing Markets..."):
         # We catch THREE things because the function returns THREE things
         res, errs, ts = cached_hunt(api_key) 
         st.session_state["bets"] = res
