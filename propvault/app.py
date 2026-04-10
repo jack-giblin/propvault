@@ -116,8 +116,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# ── STRATEGY GUIDE ───────────────────────────────────────────────────────────
-# ── STRATEGY GUIDE ───────────────────────────────────────────────────────────
+
 # ── STRATEGY GUIDE ───────────────────────────────────────────────────────────
 st.markdown("""
 <div class="guide-container">
@@ -127,15 +126,19 @@ st.markdown("""
         <div class="legend-item" style="border-top: 4px solid #94a3b8;"><div style="color:#94a3b8; font-size:12px; font-weight:800;">STANDARD</div><div style="font-weight:700;">2% - 5% EV</div></div>
         <div class="legend-item" style="border-top: 4px solid #facc15;"><div style="color:#facc15; font-size:12px; font-weight:800;">PREMIUM</div><div style="font-weight:700;">5% - 7% EV</div></div>
         <div class="legend-item" style="border-top: 4px solid #7dd3fc;"><div style="color:#7dd3fc; font-size:12px; font-weight:800;">🦄 UNICORN</div><div style="font-weight:700;">7%+ EV</div></div>
-    </div>
-    <hr style="border: 0; border-top: 1px solid #1e2a38; margin: 20px 0;">
-    <p style="font-size: 13px; color: #64748b; font-style: italic; line-height: 1.5;">
-        🔒 <b>Quality Control:</b> PropVault is built for sustainable growth, not chasing outliers. 
+    <div style="
+        margin-top: 25px; 
+        padding-top: 15px; 
+        border-top: 1px solid #1e2a38; 
+        font-size: 15px; 
+        color: #f1f5f9; 
+        font-style: italic; 
+        line-height: 1.6;
+    ">
+        🔒 <b>PropVault Logic:</b> Built for sustainable growth, not chasing outliers. 
         We cap EV at 15% and Win Prob at 40% to filter out "trap" lines and low-liquidity longshots. 
         We focus on high-probability discrepancies where the math is most reliable.
-    </p>
-</div>
-""", unsafe_allow_html=True)
+    </div>
 
 # ── 7. PRO TIPS (The "Under" Bias) ──────────────────────────────────────────
 st.markdown("""
