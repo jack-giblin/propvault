@@ -1,11 +1,12 @@
 import httpx
 import time
+import requests
 from datetime import datetime
 from typing import Optional
 
 BASE_URL = "https://api.the-odds-api.com/v4"
 MIN_EV = 2.5
-MAX_EV_CAP = 15.0  # Increased slightly to catch those high-value unicorns
+MAX_EV_CAP = 15.0
 MIN_WIN_PROB = 0.40      
 SHARP_BOOK = "pinnacle"
 TARGET_BOOK = "novig"
@@ -37,25 +38,6 @@ def no_vig_prob(price_a: float, price_b: float) -> tuple[float, float]:
 def fmt_odds(o: int) -> str:
     return f"+{o}" if o > 0 else str(o)
 
-# ── API Logic ─────────────────────────────────────────────────────────────────
-def fetch_bulk_odds(api_key: str, sport: str, markets: str) -> list[dict]:
-    url = f"{BASE_URL}/sports/{sport}/odds"
-    params = {"apiKey": api_key, "regions": "us", "markets": markets, "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}", "oddsFormat": "american"}
-    with httpx.Client(timeout=15) as client:
-        resp = client.get(url, params=params)
-        resp.raise_for_status()
-        return resp.json()
-
-def fetch_event_props(api_key: str, sport: str, event_id: str) -> list[dict]:
-    # Added a tiny sleep here to prevent 422/429 errors during the loop
-    time.sleep(0.3) 
-    url = f"{BASE_URL}/sports/{sport}/events/{event_id}/odds"
-    params = {"apiKey": api_key, "regions": "us", "markets": ",".join(PROP_MARKETS), "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}", "oddsFormat": "american"}
-    with httpx.Client(timeout=15) as client:
-        resp = client.get(url, params=params)
-        if resp.status_code != 200: return []
-        return resp.json().get("bookmakers", [])
-
 # ── Processing ────────────────────────────────────────────────────────────────
 def _fmt_side(name: str, point: float, market_key: str, description: str = "") -> str:
     if any(x in market_key for x in ["player_", "pitcher_", "batter_"]):
@@ -65,64 +47,70 @@ def _fmt_side(name: str, point: float, market_key: str, description: str = "") -
     pt = f"+{point}" if point > 0 else str(point)
     return f"{name} {pt}"
 
+# ── API Logic ─────────────────────────────────────────────────────────────────
 def find_ev_bets(api_key):
     all_bets = []
     errors = []
-    # Narrow down to specific markets to keep the data payload manageable
-    # Adding 'player_points' or 'player_assists' here only costs 1 credit for the WHOLE league
-    target_markets = "h2h,spreads,totals,player_points,player_assists"
+    # Combined target markets for the batch request
+    target_markets = "h2h,spreads,totals,player_points,player_assists,pitcher_strikeouts"
     
-for sport in ["basketball_nba", "baseball_mlb"]:
-    url = f"https://api.parlay-api.com/v4/sports/{sport}/odds/"
-    params = {
-        "apiKey": api_key,
-        "regions": "us",
-        "markets": target_markets,
-        "oddsFormat": "american"
-    }
+    for sport in SPORTS:
+        url = f"https://api.parlay-api.com/v4/sports/{sport}/odds/"
+        params = {
+            "apiKey": api_key,
+            "regions": "us",
+            "markets": target_markets,
+            "oddsFormat": "american"
+        }
         
         try:
-            response = requests.get(url, params=params)
-            # Check for credit exhaustion
+            response = requests.get(url, params=params, timeout=15)
             if response.status_code == 401:
                 errors.append(f"API Key exhausted or invalid for {sport}.")
                 continue
                 
+            if response.status_code != 200:
+                continue
+
             data = response.json()
             
-            # Now, instead of looping and calling the API again, 
-            # all the prop data is ALREADY in the 'data' variable.
-            # You just need to parse the 'bookmakers' list within each game.
-            
-        except Exception as e:
-            errors.append(f"Error fetching {sport}: {str(e)}")
-            
-    return all_bets[:30], errors
-
-                # 2. Check Player Props for this specific event
-                prop_bms = fetch_event_props(api_key, sport, event["id"])
-                p_pin = next((b for b in prop_bms if b["key"] == SHARP_BOOK), None)
-                p_nov = next((b for b in prop_bms if b["key"] == TARGET_BOOK), None)
+            for event in data:
+                bookies = {b['key']: b['markets'] for b in event.get('bookmakers', [])}
                 
-                if p_pin and p_nov:
-                    for pin_mkt in p_pin["markets"]:
-                        nov_mkt = next((m for m in p_nov["markets"] if m["key"] == pin_mkt["key"]), None)
-                        if not nov_mkt: continue
+                if SHARP_BOOK in bookies and TARGET_BOOK in bookies:
+                    # Look for discrepancies in the markets provided in the batch
+                    for sharp_mkt in bookies[SHARP_BOOK]:
+                        m_key = sharp_mkt['key']
+                        nov_mkt = next((m for m in bookies[TARGET_BOOK] if m['key'] == m_key), None)
+                        
+                        if nov_mkt and len(sharp_mkt['outcomes']) == 2:
+                            s_outs = sharp_mkt['outcomes']
+                            n_outs = nov_mkt['outcomes']
 
-                        for p_out in pin_mkt["outcomes"]:
-                            n_out = next((o for o in nov_mkt["outcomes"] if o.get("description") == p_out.get("description") and o["name"] == p_out["name"] and o.get("point") == p_out.get("point")), None)
-                            other_p = next((o for o in pin_mkt["outcomes"] if o.get("description") == p_out.get("description") and o["name"] != p_out["name"] and o.get("point") == p_out.get("point")), None)
-                            
-                            if n_out and other_p:
-                                fair_prob, _ = no_vig_prob(p_out["price"], other_p["price"])
-                                ev = (fair_prob * american_to_decimal(n_out["price"]) - 1) * 100
-                                if MIN_EV < ev < MAX_EV_CAP and fair_prob >= MIN_WIN_PROB:
-                                    all_bets.append({
-                                        "Sport": sport.split("_")[1].upper(), "Game": f"{event['away_team']} @ {event['home_team']}",
-                                        "Market": MARKET_LABELS.get(pin_mkt["key"], pin_mkt["key"]), 
-                                        "Side": _fmt_side(n_out["name"], n_out.get("point", 0), pin_mkt["key"], n_out.get("description", "")),
-                                        "Novig Odds": fmt_odds(int(n_out["price"])), "Fair Odds": decimal_to_american(1/fair_prob), "EV %": round(ev, 2)
-                                    })
+                            # Calculate No-Vig Probability
+                            try:
+                                p1_fair, p2_fair = no_vig_prob(s_outs[0]['price'], s_outs[1]['price'])
+                            except:
+                                continue
+
+                            for i in range(2):
+                                # Match Novig outcome to Pinnacle outcome
+                                n_out = next((o for o in n_outs if o['name'] == s_outs[i]['name'] and o.get('point') == s_outs[i].get('point')), None)
+                                
+                                if n_out:
+                                    fair_prob = p1_fair if i == 0 else p2_fair
+                                    ev = (fair_prob * american_to_decimal(n_out["price"]) - 1) * 100
+                                    
+                                    if MIN_EV < ev < MAX_EV_CAP and fair_prob >= MIN_WIN_PROB:
+                                        all_bets.append({
+                                            "Sport": sport.split("_")[1].upper() if "_" in sport else sport.upper(),
+                                            "Game": f"{event['away_team']} @ {event['home_team']}",
+                                            "Market": MARKET_LABELS.get(m_key, m_key), 
+                                            "Side": _fmt_side(n_out["name"], n_out.get("point", 0), m_key, n_out.get("description", "")),
+                                            "Novig Odds": fmt_odds(int(n_out["price"])),
+                                            "Fair Odds": decimal_to_american(1/fair_prob),
+                                            "EV %": round(ev, 2)
+                                        })
 
         except Exception as e:
             errors.append(f"Notice: {sport} updates pending. ({str(e)})")
