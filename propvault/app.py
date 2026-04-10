@@ -26,7 +26,7 @@ st.markdown("""
                 transition: 0.3s;
                 box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
             ">
-                ☕ Please buy me a coffee to support the server
+                🍺 Please buy me a beer to support the server
             </div>
         </a>
     </div>
