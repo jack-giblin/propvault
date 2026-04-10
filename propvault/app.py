@@ -4,14 +4,193 @@ import requests
 import streamlit as st
 from ev_engine import find_ev_bets
 
+# 1. Page Configuration
 st.set_page_config(page_title="PropVault", page_icon="🦄", layout="wide")
 
-# ── ALL YOUR CSS (UNCHANGED) ─────────────────────
-st.markdown("""<style>
-/* your entire CSS unchanged exactly */
-</style>""", unsafe_allow_html=True)
+# 2. CSS Overhaul
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap');
 
-# ── LIVE SCORES ──────────────────────────────────
+html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
+    background-color: #060912 !important;
+    font-family: 'DM Sans', sans-serif !important;
+    color: #e2e8f0;
+}
+
+[data-testid="stHeader"] { background: transparent !important; }
+#MainMenu, footer, header { visibility: hidden; }
+[data-testid="stSidebar"], section[data-testid="stSidebar"] { display: none !important; }
+.block-container { padding: 0 !important; max-width: 100% !important; }
+
+/* ── Live scores ticker ── */
+.scores-bar {
+    background: #020408;
+    border-bottom: 1px solid #1e293b;
+    padding: 12px 0;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.scores-track {
+    display: inline-flex;
+    animation: scroll-left 120s linear infinite;
+}
+
+.scores-track:hover { animation-play-state: paused; }
+
+@keyframes scroll-left {
+    0% { transform:translateX(0); }
+    100% { transform:translateX(-50%); }
+}
+
+.score-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 30px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.score-status {
+    color: #cbd5e1 !important;
+    margin-left: 8px;
+    font-weight: 500;
+}
+
+/* ── Brand Header ── */
+.pv-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1000px;
+    margin: 40px auto 30px;
+    padding: 0 20px;
+}
+
+.pv-logo-name {
+    font-size: 42px;
+    font-weight: 900;
+    background: linear-gradient(90deg, #7dd3fc 0%, #ffffff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1.5px;
+}
+
+.pv-beer-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #0f172a;
+    border: 1.5px solid #1e293b;
+    border-radius: 100px;
+    padding: 10px 22px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #7dd3fc;
+    text-decoration: none;
+}
+
+/* ── Stats Row ── */
+.pv-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    max-width: 1000px;
+    margin: 0 auto 30px;
+    padding: 0 20px;
+}
+
+.pv-stat {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 20px;
+    padding: 22px;
+    text-align: center;
+}
+
+.pv-stat-num {
+    font-size: 38px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 6px;
+}
+
+.pv-stat-lbl {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #475569;
+    letter-spacing: 1.5px;
+}
+
+/* ── Cards ── */
+.card {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid #1e293b;
+    border-radius: 24px;
+    padding: 28px;
+    margin-bottom: 16px;
+}
+
+.strategy-box { border-left: 4px solid #ef4444; }
+
+.s-stat-under {
+    background: #064e3b;
+    color: #34d399;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 800;
+}
+
+.s-stat-over {
+    background: #450a0a;
+    color: #f87171;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 800;
+}
+
+/* ── Odds Badges ── */
+.odds-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.odds-badge {
+    background: #052e16;
+    color: #4ade80;
+    border: 1px solid #064e3b;
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-weight: 900;
+    font-size: 18px;
+}
+
+/* ── Hunt Button ── */
+div.stButton > button {
+    width: 100% !important;
+    max-width: 400px;
+    height: 64px !important;
+    background: #0f172a !important;
+    border: 2px solid #38bdf8 !important;
+    border-radius: 100px !important;
+    color: #38bdf8 !important;
+    font-weight: 900 !important;
+    font-size: 17px !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
+    margin: 20px auto !important;
+    display: block;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# 3. Live Scores Fetch
 @st.cache_data(ttl=120)
 def fetch_scores():
     scores = []
@@ -28,6 +207,7 @@ def fetch_scores():
                     teams = comp["competitors"]
                     home = next(t for t in teams if t["homeAway"] == "home")
                     away = next(t for t in teams if t["homeAway"] == "away")
+
                     scores.append({
                         "league": league.upper(),
                         "away": away["team"]["abbreviation"],
@@ -38,9 +218,10 @@ def fetch_scores():
                     })
     except:
         pass
+
     return scores
 
-# ── DATA ─────────────────────────────────────────
+# 4. EV Data Management
 api_key = os.environ.get("ODDS_API_KEY", "")
 CACHE_TIME = 300
 
@@ -62,7 +243,7 @@ def update_data():
 if (time.time() - st.session_state.fetched_at) >= CACHE_TIME:
     update_data()
 
-# ── RENDER ───────────────────────────────────────
+# ── RENDER ──
 scores = fetch_scores()
 
 if scores:
@@ -72,8 +253,7 @@ if scores:
     ])
     st.markdown(f'<div class="scores-bar"><div class="scores-track">{chips * 3}</div></div>', unsafe_allow_html=True)
 
-# Header (UNCHANGED)
-st.markdown("""
+st.markdown(f"""
 <div class="pv-header">
     <div>
         <div class="pv-logo-name">PropVault</div>
@@ -83,14 +263,16 @@ st.markdown("""
     </div>
     <div style="display:flex; gap:15px; align-items:center;">
         <a class="pv-beer-btn" href="https://www.buymeacoffee.com/notjxck" target="_blank">🍺 Buy me a beer</a>
-        <div style="color:#22c55e; border:1px solid #166534; background:#052e16; padding:8px 20px; border-radius:100px; font-size:12px; font-weight:900;">● LIVE</div>
+        <div style="color:#22c55e; border:1px solid #166534; background:#052e16; padding:8px 20px; border-radius:100px; font-size:12px; font-weight:900;">
+            ● LIVE
+        </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
 bets = st.session_state.bets
 
-avg_ev = round(sum(b["EV %"] for b in bets)/len(bets), 1) if bets else 0
+avg_ev = round(sum(b["EV %"] for b in bets) / len(bets), 1) if bets else 0
 top_ev = max([b["EV %"] for b in bets]) if bets else 0
 
 st.markdown(f"""
@@ -101,69 +283,60 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# Button (UNCHANGED)
+st.markdown('<div style="max-width:1000px; margin: 0 auto; padding: 0 20px;">', unsafe_allow_html=True)
+
+st.markdown("""
+<div class="card strategy-box">
+    <h3 style="color:#ef4444; margin:0 0 10px 0; font-size:18px; font-weight:900;">📉 The "Anti-Public" Strategy</h3>
+    <p style="color:#94a3b8; font-size:14px; line-height:1.7; margin:0;">
+        Data confirms: <span class="s-stat-over">Overs return -2.26% ROI</span> while
+        <span class="s-stat-under">Unders return +3.33% ROI</span>.
+        An <span style="color:#ffffff; font-weight:700;">Over</span> almost always requires flawless play.
+        An <span style="color:#ffffff; font-weight:700;">Under</span> wins if there is an injury, blowout, foul trouble, or just a bad night.
+        <span style="color:#ffffff; font-style:italic;">Bet on the chaos, not the perfection.</span>
+    </p>
+</div>
+""", unsafe_allow_html=True)
+
 if st.button("🦄 HUNT FOR UNICORNS"):
     with st.spinner("Scanning NBA & MLB Props..."):
         update_data()
     st.rerun()
 
-# Bets
 if bets:
-    st.markdown('<p style="color:#475569; font-weight:800; font-size:11px;">Live Prop Edges</p>', unsafe_allow_html=True)
+    st.markdown('<p style="color:#475569; font-weight:800; font-size:11px; letter-spacing:2px; margin:30px 0 15px 0; text-transform:uppercase;">Live Prop Edges</p>', unsafe_allow_html=True)
 
     for b in bets:
-
-        tier = b.get("Tier", "LOW")
-
-        tier_color = {
-            "UNICORN": "#7dd3fc",
-            "PREMIUM": "#fbbf24",
-            "STANDARD": "#94a3b8",
-            "LOW": "#64748b"
-        }[tier]
+        tier_color = "#7dd3fc" if b["EV %"] >= 7 else "#fbbf24" if b["EV %"] >= 5 else "#64748b"
 
         st.markdown(f"""
-        <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div style="flex:1;">
-                    <div style="color:{tier_color}; font-size:10px; font-weight:800;">
-                        {b.get('Sport')} · {b.get('Market')}
-                    </div>
-
-                    <div style="font-size:24px; font-weight:900;">
-                        {b.get('Player')}
-                    </div>
-
-                    <div style="font-size:18px; font-weight:700; color:{tier_color};">
-                        {b.get('Side')}
-                    </div>
-
-                    <div style="color:#64748b;">
-                        {b.get('Game')}
-                    </div>
-
-                    <div class="odds-row">
-                        <span class="odds-badge">{b.get('Target Odds')}</span>
-                        <span style="color:#475569;">
-                            Fair (Pinny): {b.get('Fair Odds')}
-                        </span>
-                    </div>
+        <div class="card" style="display:flex; justify-content:space-between;">
+            <div>
+                <div style="color:{tier_color}; font-size:10px; font-weight:800;">
+                    {b.get('Sport')} · {b.get('Market')}
                 </div>
+                <div style="font-size:24px; font-weight:900;">{b.get('Player')}</div>
+                <div style="font-size:18px; font-weight:700; color:{tier_color};">{b.get('Side')}</div>
+                <div style="color:#64748b;">{b.get('Game')}</div>
 
-                <div style="text-align:right;">
-                    <div style="color:{tier_color}; font-size:38px; font-weight:900;">
-                        +{b.get('EV %')}%
-                    </div>
-                    <div style="font-size:10px; text-transform:uppercase;">
-                        Expected Value
-                    </div>
+                <div class="odds-row">
+                    <span class="odds-badge">{b.get('Target Odds')}</span>
+                    <span style="color:#475569;">Fair (Pinny): {b.get('Fair Odds')}</span>
                 </div>
+            </div>
+
+            <div style="text-align:right;">
+                <div style="color:{tier_color}; font-size:38px; font-weight:900;">
+                    +{b.get('EV %')}%
+                </div>
+                <div style="font-size:10px;">Expected Value</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 else:
-    st.markdown("""
-    <div style="text-align:center; padding:60px 0; color:#334155;">
-        No Prop Edges found. Try again in 5 mins.
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        '<div style="text-align:center; padding:60px 0; color:#334155; font-weight:700;">No Prop Edges found. Try again in 5 mins.</div>',
+        unsafe_allow_html=True
+    )
+
+st.markdown('</div>', unsafe_allow_html=True)
