@@ -9,7 +9,7 @@ MIN_EV = 2.5
 MAX_EV_CAP = 15.0
 MIN_WIN_PROB = 0.40      
 SHARP_BOOK = "pinnacle"
-TARGET_BOOK = "novig"
+TARGET_BOOK = "draftkings"
 
 SPORTS = ["basketball_nba", "baseball_mlb"]
 MAIN_MARKETS = ["spreads", "totals"]
@@ -53,7 +53,7 @@ def find_ev_bets(api_key):
     errors = []
     
     # WE BATCH EVERYTHING: This allows 1 credit to cover all these markets
-    target_markets = "h2h,spreads,totals,player_points,player_assists,pitcher_strikeouts"
+    target_markets = "h2h,spreads,totals,player_points,player_rebounds,player_assists,player_strikeouts"
     
     # We only loop through the SPORTS, not the markets.
     for sport in ["basketball_nba", "baseball_mlb"]: 
@@ -77,7 +77,7 @@ def find_ev_bets(api_key):
                 bookies = {b['title'].lower(): b['markets'] for b in event.get('bookmakers', [])}
                 
                 # Check for "pinnacle" and "novig" in the titles
-                if "pinnacle" in bookies and "novig" in bookies:
+                if "pinnacle" in bookies and "draftkings" in bookies:
                     for s_mkt in bookies["pinnacle"]:
                         m_key = s_mkt['key']
                         n_mkt = next((m for m in bookies["novig"] if m['key'] == m_key), None)
