@@ -10,22 +10,23 @@ st.markdown("""
     <div style="
         display: flex; 
         justify-content: flex-end; 
-        padding-top: 50px; 
-        margin-bottom: -40px;
+        padding-top: 60px; 
+        margin-bottom: -45px;
     ">
         <a href="https://www.buymeacoffee.com/YOUR_USERNAME" target="_blank" style="text-decoration: none;">
             <div style="
-                color: #94a3b8; 
-                font-size: 11px; 
-                border: 1px solid #334155; 
-                padding: 6px 14px; 
-                border-radius: 20px; 
-                background: rgba(255, 255, 255, 0.03);
+                color: #ffffff; 
+                font-size: 13px; 
+                border: 1px solid #7dd3fc; 
+                padding: 10px 20px; 
+                border-radius: 25px; 
+                background: rgba(125, 211, 252, 0.1);
                 font-weight: 800;
-                letter-spacing: 1px;
-                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                transition: 0.3s;
+                box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
             ">
-                ☕ Please Support Server
+                ☕ Please buy me a coffee to support the server
             </div>
         </a>
     </div>
