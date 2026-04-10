@@ -112,6 +112,15 @@ def _lines_match(pin_map: dict, nov_map: dict, market_key: str) -> bool:
 
 # ── Core pipeline ─────────────────────────────────────────────────────────────
 
+def _fmt_side(name: str, point: float, market_key: str) -> str:
+    """Append point value for spreads and totals."""
+    if market_key not in ("spreads", "totals") or point == 0:
+        return name
+    pt = f"+{point}" if point > 0 else str(point)
+    if market_key == "totals":
+        return f"Over {abs(point)}" if name == "Over" else f"Under {abs(point)}"
+    return f"{name} {pt}"
+
 def find_ev_bets(api_key: str) -> tuple[list[dict], list[str]]:
     """
     Returns (bets, errors).
@@ -183,7 +192,7 @@ def find_ev_bets(api_key: str) -> tuple[list[dict], list[str]]:
                         "Sport":      SPORT_LABELS.get(sport, sport.upper()),
                         "Game":       game,
                         "Market":     MARKET_LABELS.get(market, market),
-                        "Side":       side,
+                        "Side":       _fmt_side(side, nov_map[side][1], market),
                         "Novig Odds": fmt_odds(int(nov_price)),
                         "Fair Odds":  decimal_to_american(1 / fair_prob),
                         "Fair Prob":  f"{fair_prob * 100:.1f}%",
