@@ -129,6 +129,25 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# ... (inside your existing Strategy Guide markdown)
+    </div>
+    
+    <div style="
+        margin-top: 25px; 
+        padding-top: 15px; 
+        border-top: 1px solid #1e2a38; 
+        font-size: 13px; 
+        color: #64748b; 
+        font-style: italic; 
+        line-height: 1.5;
+    ">
+        🛡️ <b>Quality Control:</b> PropVault is built for sustainable growth, not chasing outliers. 
+        We cap EV at 15% and Win Prob at 40% to filter out "trap" lines and low-liquidity longshots. 
+        We focus on high-probability discrepancies where the math is most reliable.
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 # ── 7. PRO TIPS (The "Under" Bias) ──────────────────────────────────────────
 st.markdown("""
 <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px; border-left: 5px solid #ef4444; margin-bottom: 25px;">
@@ -159,7 +178,7 @@ st.markdown("""
 _, center_col, _ = st.columns([1, 2, 1])
 with center_col:
     # Small UI touch: show how long until the next fresh data is available
-    st.markdown("<div style='text-align:center; color:#475569; font-size:11px; margin-bottom:-15px;'>API Data cached for 5 mins to save credits</div>", unsafe_allow_html=True)  
+    st.markdown("<div style='text-align:center; color:#475569; font-size:11px; margin-bottom:-15px;'>API Data cached for 2 mins</div>", unsafe_allow_html=True)  
     if st.button("🦄 HUNT FOR UNICORNS"):
         with st.spinner("Analyzing Markets..."):
             # Call the CACHED version of the function
