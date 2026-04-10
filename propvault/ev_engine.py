@@ -55,7 +55,7 @@ def find_ev_bets(api_key):
     target_markets = "h2h,spreads,totals,player_points,player_assists,pitcher_strikeouts"
     
     for sport in SPORTS:
-        url = f"https://api.parlayapi.com/v4/sports/{sport}/odds/"
+        url = f"https://parlay-api.com/v1/sports/{sport}/odds"
         params = {
             "apiKey": api_key,
             "regions": "us",
