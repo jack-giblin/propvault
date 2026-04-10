@@ -205,7 +205,7 @@ else:
             <div class="bet-side">{bet["Side"]}</div>
             <div style="color: #64748b; font-size: 14px;">{bet["Game"]} · {bet["Market"]}</div>
             <div style="margin-top: 12px; display: flex; align-items: center; gap: 10px;">
-                <span style="background: #22c55e22; color: #4ade80; padding: 4px 10px; border-radius: 6px; font-weight: 800;">{bet["Novig Odds"]}</span>
+                <span style="background: #22c55e22; color: #4ade80; padding: 4px 10px; border-radius: 6px; font-weight: 800;">{bet["Draftkings Odds"]}</span>
                 <span style="color: #475569; font-size: 12px;">vs Fair {bet["Fair Odds"]}</span>
             </div>
           </div>
