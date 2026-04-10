@@ -52,61 +52,69 @@ def find_ev_bets(api_key):
     all_bets = []
     errors = []
     
-    # WE BATCH EVERYTHING: This allows 1 credit to cover all these markets
+    # Batch markets to save credits (1 credit per sport)
     target_markets = "h2h,spreads,totals,player_points,player_rebounds,player_assists,player_strikeouts"
     
-    # We only loop through the SPORTS, not the markets.
     for sport in ["basketball_nba", "baseball_mlb"]: 
         url = f"https://parlay-api.com/v1/sports/{sport}/odds"
         
         params = {
             "apiKey": api_key,
             "regions": "us",
-            "markets": target_markets, # ALL markets in one go
+            "markets": target_markets,
             "oddsFormat": "american"
         }
         
         try:
-            # This is 1 Credit per sport (Total: 2 Credits)
             response = requests.get(url, params=params, timeout=10)
-            if response.status_code != 200: continue
+            if response.status_code != 200:
+                continue
             
             events = response.json()
             for event in events:
-                # FIX: Use 'title' and lowercase it to match your SHARP_BOOK variable
+                # Normalize bookmaker names to lowercase
                 bookies = {b['title'].lower(): b['markets'] for b in event.get('bookmakers', [])}
                 
-                # Check for "pinnacle" and "novig" in the titles
-                if "pinnacle" in bookies and "draftkings" in bookies:
-                    for s_mkt in bookies["pinnacle"]:
+                # Use variables (SHARP_BOOK/TARGET_BOOK) defined at the top of your file
+                if SHARP_BOOK in bookies and TARGET_BOOK in bookies:
+                    for s_mkt in bookies[SHARP_BOOK]:
                         m_key = s_mkt['key']
-                        n_mkt = next((m for m in bookies["novig"] if m['key'] == m_key), None)
+                        
+                        # Find the matching market in the Target Book (e.g., DraftKings)
+                        n_mkt = next((m for m in bookies[TARGET_BOOK] if m['key'] == m_key), None)
                         
                         if n_mkt and len(s_mkt['outcomes']) == 2:
                             s_outs = s_mkt['outcomes']
                             try:
+                                # Calculate Fair Probability using Sharp Lines
                                 p1_fair, p2_fair = no_vig_prob(s_outs[0]['price'], s_outs[1]['price'])
-                            except: continue
+                            except: 
+                                continue
 
                             for i in range(2):
-                                # Outcome matching
-                                n_out = next((o for o in n_mkt['outcomes'] if o['name'] == s_outs[i]['name'] and o.get('point') == s_outs[i].get('point')), None)
+                                # Match specific side (e.g., "Over" or "Lakers") and Point value
+                                n_out = next((o for o in n_mkt['outcomes'] if o['name'] == s_outs[i]['name'] 
+                                              and float(o.get('point', 0)) == float(s_outs[i].get('point', 0))), None)
                                 
                                 if n_out:
                                     fair_prob = p1_fair if i == 0 else p2_fair
+                                    # Calculate the Expected Value
                                     ev = (fair_prob * american_to_decimal(n_out["price"]) - 1) * 100
                                     
+                                    # Final filtering
                                     if MIN_EV < ev < MAX_EV_CAP and fair_prob >= MIN_WIN_PROB:
                                         all_bets.append({
                                             "Game": f"{event['away_team']} @ {event['home_team']}",
                                             "Market": MARKET_LABELS.get(m_key, m_key.replace('_', ' ').title()),
                                             "Side": _fmt_side(n_out["name"], n_out.get("point", 0), m_key, n_out.get("description", "")),
-                                            "Novig Odds": fmt_odds(int(n_out["price"])),
+                                            "Target Odds": fmt_odds(int(n_out["price"])),
                                             "Fair Odds": decimal_to_american(1/fair_prob),
                                             "EV %": round(ev, 2)
                                         })
+                                        
         except Exception as e:
             errors.append(f"Error on {sport}: {str(e)}")
 
+    # Sort results by the highest EV
     all_bets.sort(key=lambda x: x["EV %"], reverse=True)
-    return all_bets[:30], errors
+    return all_bets, errors
