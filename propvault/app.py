@@ -76,21 +76,15 @@ st.markdown("""
 
 # ── LOGIC & STATE ────────────────────────────────────────────────────────────
 def get_api_key():
-    # 1. Try pulling from Railway Variables first
-    key = os.environ.get("ODDS_API_KEY")
+    # We ONLY look at Railway Environment Variables now.
+    # This prevents Streamlit from hunting for a 'secrets.toml' file and crashing.
+    key = os.environ.get("ODDS_API_KEY", "")
     
-    # 2. If Railway variable is missing, safely try secrets
     if not key:
-        try:
-            # Using .get and catching all Exceptions prevents the "No secrets found" crash
-            key = st.secrets.get("ODDS_API_KEY", "")
-        except Exception:
-            key = ""
-            
-    return key.strip() if key else ""
-
-# This will now return an empty string instead of crashing the site
-api_key = get_api_key()
+        # This will show up in your Railway Logs, not as a red box on the site
+        print("DEBUG: ODDS_API_KEY not found in Environment Variables.")
+        
+    return key.strip()
 
 # ⚡ THIS IS THE MAGIC PART: CACHING
 # We set the TTL to 120 seconds (2 minutes). 
