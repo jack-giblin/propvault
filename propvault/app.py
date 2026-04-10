@@ -49,10 +49,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── LOGIC & STATE ────────────────────────────────────────────────────────────
+# Update your get_api_key function to strip any hidden spaces
 def get_api_key():
-    return st.secrets.get("ODDS_API_KEY", os.getenv("ODDS_API_KEY", ""))
-
-api_key = get_api_key()
+    raw_key = st.secrets.get("ODDS_API_KEY", os.getenv("ODDS_API_KEY", ""))
+    return raw_key.strip() # This removes any accidental spaces/newlines
 
 # Initialize session state so data persists
 if "bets" not in st.session_state:
