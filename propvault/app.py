@@ -3,6 +3,7 @@ import time
 import requests
 import streamlit as st
 from ev_engine import find_ev_bets
+from streamlit_autorefresh import st_autorefresh
 
 # 1. Page Configuration
 st.set_page_config(page_title="PropVault", page_icon="🦄", layout="wide")
@@ -223,25 +224,18 @@ def fetch_scores():
 
 # 4. EV Data Management
 api_key = os.environ.get("ODDS_API_KEY", "")
-CACHE_TIME = 300
 
-if "bets" not in st.session_state:
-    st.session_state.bets = []
+# This forces the app to refresh itself every 15 minutes (900,000 milliseconds)
+st_autorefresh(interval=900 * 1000, key="api_heartbeat")
 
-if "fetched_at" not in st.session_state:
-    st.session_state.fetched_at = 0
-
-def update_data():
-    if not api_key:
-        st.error("ODDS_API_KEY not found.")
-        return
-
+@st.cache_data(ttl=900) 
+def get_cached_ev_data(api_key):
+    # This only hits the Odds API once every 15 mins
     bets, errors = find_ev_bets(api_key)
-    st.session_state.bets = bets
-    st.session_state.fetched_at = time.time()
+    return bets
 
-if (time.time() - st.session_state.fetched_at) >= CACHE_TIME:
-    update_data()
+# Every time the app "heartbeats", it runs this line:
+st.session_state.bets = get_cached_ev_data(api_key)
 
 # ── RENDER ──
 scores = fetch_scores()
@@ -297,11 +291,6 @@ st.markdown("""
     </p>
 </div>
 """, unsafe_allow_html=True)
-
-if st.button("🦄 HUNT FOR UNICORNS"):
-    with st.spinner("Scanning NBA & MLB Props..."):
-        update_data()
-    st.rerun()
 
 if bets:
     st.markdown('<p style="color:#475569; font-weight:800; font-size:11px; letter-spacing:2px; margin:30px 0 15px 0; text-transform:uppercase;">Live Prop Edges</p>', unsafe_allow_html=True)
