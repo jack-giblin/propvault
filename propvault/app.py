@@ -173,7 +173,6 @@ with center_col:
     with st.spinner("Analyzing Markets..."):
         # We catch THREE things because the function returns THREE things
         res, errs, ts = cached_hunt(api_key) 
-
         st.session_state["bets"] = res
         st.session_state["last_run"] = ts
 
