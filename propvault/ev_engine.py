@@ -3,22 +3,24 @@ from typing import Tuple
 
 BASE_URL = "https://api.the-odds-api.com/v4"
 
-# Config
+# ── CONFIG ─────────────────────────────────────────
+
 MIN_EV = 0.5
 MAX_EV_CAP = 15.0
+
 SHARP_BOOK = "pinnacle"
 TARGET_BOOK = "novig"
 
-SPORTS = ["basketball_nba"]  # keep tight for now
+MIN_WIN_PROB = 0.40  # sanity filter (keeps lines realistic)
+
+SPORTS = ["basketball_nba"]
 
 PROP_MARKETS = [
     "player_rebounds",
     "player_assists"
 ]
 
-ONLY_UNDERS = False  # flip to True if you want only unders
-
-# ── Math ─────────────────────────────────────────
+# ── MATH ─────────────────────────────────────────
 
 def american_to_decimal(o: float) -> float:
     return o / 100 + 1 if o > 0 else 100 / abs(o) + 1
@@ -36,7 +38,21 @@ def calc_ev(prob: float, odds: float) -> float:
 def fmt_odds(o: float) -> str:
     return f"+{int(o)}" if o > 0 else str(int(o))
 
-# ── Core ─────────────────────────────────────────
+# ── BACKEND INTELLIGENCE ─────────────────────────
+
+def ev_tier(ev: float) -> str:
+    if ev >= 7:
+        return "UNICORN"
+    elif ev >= 5:
+        return "PREMIUM"
+    elif ev >= 2:
+        return "STANDARD"
+    return "LOW"
+
+def edge_score(ev: float, prob: float) -> float:
+    return ev * prob  # OddsJam-lite ranking logic
+
+# ── ENGINE ────────────────────────────────────────
 
 def find_ev_bets(api_key: str):
     all_bets = []
@@ -67,7 +83,6 @@ def find_ev_bets(api_key: str):
 
                 books = {b['key']: b for b in odds_data.get('bookmakers', [])}
 
-                # REQUIRE BOTH BOOKS
                 if SHARP_BOOK not in books or TARGET_BOOK not in books:
                     continue
 
@@ -83,21 +98,17 @@ def find_ev_bets(api_key: str):
                     if not nov_mkt:
                         continue
 
-                    # Group Pinnacle by player + point
                     grouped = {}
+
                     for o in pin_mkt['outcomes']:
                         player = o['description']
                         point = o.get('point')
-                        side = o['name']  # Over / Under
+                        side = o['name']
 
                         key = (player, point)
 
-                        if key not in grouped:
-                            grouped[key] = {}
+                        grouped.setdefault(key, {})[side] = o
 
-                        grouped[key][side] = o
-
-                    # Evaluate props
                     for (player, point), sides in grouped.items():
 
                         if "Over" not in sides or "Under" not in sides:
@@ -108,7 +119,6 @@ def find_ev_bets(api_key: str):
 
                         fair_over, fair_under = no_vig_probs(pin_over, pin_under)
 
-                        # Match with Novig
                         for n in nov_mkt['outcomes']:
 
                             if n['description'] != player:
@@ -119,14 +129,16 @@ def find_ev_bets(api_key: str):
                             side = n['name']
                             odds = n['price']
 
-                            if ONLY_UNDERS and side != "Under":
-                                continue
-
                             prob = fair_over if side == "Over" else fair_under
                             ev = calc_ev(prob, odds)
 
                             if ev < MIN_EV or ev > MAX_EV_CAP:
                                 continue
+
+                            if prob < MIN_WIN_PROB:
+                                continue
+
+                            score = edge_score(ev, prob)
 
                             all_bets.append({
                                 "Sport": "NBA",
@@ -136,11 +148,15 @@ def find_ev_bets(api_key: str):
                                 "Side": f"{side} {point}",
                                 "Target Odds": fmt_odds(odds),
                                 "Fair Odds": fmt_odds(pin_over if side == "Over" else pin_under),
-                                "EV %": round(ev, 2)
+                                "EV %": round(ev, 2),
+
+                                # backend-only fields (safe)
+                                "Tier": ev_tier(ev),
+                                "_score": round(score, 4)
                             })
 
         except Exception as e:
             errors.append(f"{sport}: {str(e)}")
 
-    all_bets.sort(key=lambda x: x["EV %"], reverse=True)
+    all_bets.sort(key=lambda x: x.get("_score", x["EV %"]), reverse=True)
     return all_bets, errors
