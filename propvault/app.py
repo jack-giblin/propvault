@@ -75,9 +75,12 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── LOGIC & STATE ────────────────────────────────────────────────────────────
+import os
+import streamlit as st
+
 def get_api_key():
-    # We REMOVED os.getenv to stop it from pulling that old ghost key
-    key = st.secrets.get("ODDS_API_KEY", "")
+    # Looks for the "ODDS_API_KEY" you typed into Railway's Variables
+    key = os.environ.get("ODDS_API_KEY") or st.secrets.get("ODDS_API_KEY", "")
     return key.strip() if key else ""
 
 api_key = get_api_key()
