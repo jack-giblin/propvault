@@ -7,20 +7,25 @@ from ev_engine import find_ev_bets
 st.set_page_config(page_title="PropVault", page_icon="🦄", layout="wide")
 
 st.markdown("""
-    <div style="display: flex; justify-content: flex-end; margin-bottom: -30px; padding-top: 10px;">
+    <div style="
+        display: flex; 
+        justify-content: flex-end; 
+        padding-top: 50px; 
+        margin-bottom: -40px;
+    ">
         <a href="https://www.buymeacoffee.com/YOUR_USERNAME" target="_blank" style="text-decoration: none;">
             <div style="
                 color: #94a3b8; 
-                font-size: 12px; 
+                font-size: 11px; 
                 border: 1px solid #334155; 
-                padding: 6px 12px; 
+                padding: 6px 14px; 
                 border-radius: 20px; 
                 background: rgba(255, 255, 255, 0.03);
-                transition: 0.3s;
-                font-weight: 600;
-                letter-spacing: 0.5px;
+                font-weight: 800;
+                letter-spacing: 1px;
+                text-transform: uppercase;
             ">
-                ☕ PLEASE SUPPORT SERVER COSTS
+                ☕ Please Support Server
             </div>
         </a>
     </div>
