@@ -4,7 +4,7 @@ import requests
 from datetime import datetime
 from typing import Optional
 
-BASE_URL = "https://api.the-odds-api.com/v4"
+BASE_URL = "https://parlay-api.com/v1"
 MIN_EV = 2.5
 MAX_EV_CAP = 15.0
 MIN_WIN_PROB = 0.40      
