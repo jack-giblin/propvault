@@ -126,42 +126,29 @@ st.markdown("""
         <div class="legend-item" style="border-top: 4px solid #94a3b8;"><div style="color:#94a3b8; font-size:12px; font-weight:800;">STANDARD</div><div style="font-weight:700;">2% - 5% EV</div></div>
         <div class="legend-item" style="border-top: 4px solid #facc15;"><div style="color:#facc15; font-size:12px; font-weight:800;">PREMIUM</div><div style="font-weight:700;">5% - 7% EV</div></div>
         <div class="legend-item" style="border-top: 4px solid #7dd3fc;"><div style="color:#7dd3fc; font-size:12px; font-weight:800;">🦄 UNICORN</div><div style="font-weight:700;">7%+ EV</div></div>
-    <div style="
-        margin-top: 25px; 
-        padding-top: 15px; 
-        border-top: 1px solid #1e2a38; 
-        font-size: 15px; 
-        color: #f1f5f9; 
-        font-style: italic; 
-        line-height: 1.6;
-    ">
+    </div>
+    <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #1e2a38; font-size: 15px; color: #f1f5f9; font-style: italic; line-height: 1.6;">
         🔒 <b>PropVault Logic:</b> Built for sustainable growth, not chasing outliers. 
         We cap EV at 15% and Win Prob at 40% to filter out "trap" lines and low-liquidity longshots. 
         We focus on high-probability discrepancies where the math is most reliable.
     </div>
+</div>
+""", unsafe_allow_html=True)
 
 # ── 7. PRO TIPS (The "Under" Bias) ──────────────────────────────────────────
 st.markdown("""
 <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px; border-left: 5px solid #ef4444; margin-bottom: 25px;">
-    <div style="font-size: 18px; font-weight: 800; color: #ef4444; margin-bottom: 15px; letter-spacing: 1px; text-transform: uppercase;"> THE "ANTI-PUBLIC" STRATEGY</div>
+    <div style="font-size: 18px; font-weight: 800; color: #ef4444; margin-bottom: 15px; letter-spacing: 1px; text-transform: uppercase;">📉 THE "ANTI-PUBLIC" STRATEGY</div>
     <div style="font-size: 15px; color: #e2e8f0; line-height: 1.6;">
         <p style="margin-bottom: 12px;">
-            <span style="font-weight: 800; color: #fff;">1. The "Fun" Tax:</span> Data on 4,000+ picks shows "Overs" at a <span style="font-weight: 800; color: #fb7185;">-2.26% ROI</span>. The public bets them because they want a reason to cheer. Books know this and bake in "juice" that only the <span style="font-weight: 800; color: #4ade80;">Under (+3.33% ROI)</span> can exploit.
+            <span style="font-weight: 800; color: #fff;">1. The "Fun" Tax:</span> Data shows "Overs" carry a negative ROI. The public bets them because they want a reason to cheer. Books bake in "juice" that only the <span style="font-weight: 800; color: #4ade80;">Under</span> can exploit.
         </p>
         <p style="margin-bottom: 12px;">
-            <span style="font-weight: 800; color: #fff;">2. One Path vs. Ten:</span> To hit a player "Over," everything must go perfectly. An <span style="font-weight: 800; color: #fff;">Under</span> wins if there is an injury, foul trouble, a blowout, a coaching change, or a bad shooting night. <i>"There are more ways to lose with an Over than an Under."</i>
+            <span style="font-weight: 800; color: #fff;">2. One Path vs. Ten:</span> To hit a player "Over," everything must go perfectly. An <span style="font-weight: 800; color: #fff;">Under</span> wins via injury, foul trouble, blowouts, or a bad shooting night.
         </p>
         <p style="margin-bottom: 12px;">
-            <span style="font-weight: 800; color: #fff;">3. Pitcher Strikeout Unders:</span> <span style="font-weight: 800; color: #fff;"> </span> This prop should not be ignored! A pitcher hits an Under if they get shelled, hit a pitch count, or the umpire has a tight zone. To hit an Over, they have to be flawless for 6+ innings. <span style="font-weight: 800; color: #7dd3fc;">Bet on the chaos.</span>
+            <span style="font-weight: 800; color: #fff;">3. The "Worst" Markets:</span> Basketball and Hockey show the worst results for "Over" bettors. If the scanner finds a high-EV Under in these sports, that is the gold standard.
         </p>
-        <p style="margin-bottom: 12px;">
-            <span style="font-weight: 800; color: #fff;">4. The "Worst" Markets:</span> <span style="font-weight: 900; color: #fff;">Basketball and Hockey</span> showed the worst results for "Over" bettors. These sports are driven by streaks and rotations that the public ignores. If the scanner finds a high-EV Under in the NBA or NHL, that is the gold standard of this strategy.
-        </p>
-        <div style="border-top: 1px solid #444; padding-top: 10px; margin-top: 15px;">
-            <span style="color: #94a3b8; font-size: 13px; font-style: italic;">
-                "Life’s too short to bet the Under" is a marketing slogan designed by sportsbooks to keep you betting on their terms.
-            </span>
-        </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
