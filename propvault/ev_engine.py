@@ -12,7 +12,11 @@ TARGET_BOOK = "novig"
 SPORTS = ["basketball_nba", "baseball_mlb"]
 MAIN_MARKETS = ["spreads", "totals"]
 # Common props for NBA and MLB
-PROP_MARKETS = ["player_points", "player_rebounds", "player_assists", "player_threes", "player_home_runs"]
+PROP_MARKETS = [
+    "player_points", "player_rebounds", "player_assists", 
+    "player_threes", "player_blocks", "player_steals",
+    "batter_home_runs", "pitcher_strikeouts", "batter_hits" # MLB specific keys
+]
 
 MARKET_LABELS = {
     "spreads": "Spread",
