@@ -50,7 +50,9 @@ st.markdown("""
 
 # ── LOGIC & STATE ────────────────────────────────────────────────────────────
 def get_api_key():
-    return st.secrets.get("ODDS_API_KEY", os.getenv("ODDS_API_KEY", ""))
+    # We REMOVED os.getenv to stop it from pulling that old ghost key
+    key = st.secrets.get("ODDS_API_KEY", "")
+    return key.strip() if key else ""
 
 api_key = get_api_key()
 
