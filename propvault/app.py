@@ -1,8 +1,3 @@
-"""
-PropVault — +EV Engine
-Railway deployment. Run: streamlit run app.py
-"""
-
 import os
 import time
 import requests
@@ -12,12 +7,11 @@ from ev_engine import find_ev_bets
 # 1. Page Configuration
 st.set_page_config(page_title="PropVault", page_icon="🦄", layout="wide")
 
-# 2. CSS Overhaul (Restores Header, Slows Ticker, Adds Odds Styling)
+# 2. CSS Overhaul
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap');
 
-/* Main Body & Layout */
 html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     background-color: #060912 !important;
     font-family: 'DM Sans', sans-serif !important;
@@ -28,7 +22,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 [data-testid="stSidebar"], section[data-testid="stSidebar"] { display: none !important; }
 .block-container { padding: 0 !important; max-width: 100% !important; }
 
-/* ── Live scores ticker (Slowed to 120s for readability) ── */
+/* ── Live scores ticker ── */
 .scores-bar {
     background: #020408;
     border-bottom: 1px solid #1e293b;
@@ -48,13 +42,18 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     margin: 0 30px;
     font-size: 13px; font-weight: 700; color: #ffffff;
 }
+/* FIX: Makes the 4/10 - 6:40 PM text readable */
+.score-status {
+    color: #cbd5e1 !important; 
+    margin-left: 8px;
+    font-weight: 500;
+}
 
 /* ── Brand Header ── */
 .pv-header {
     display: flex; align-items: center; justify-content: space-between;
     max-width: 1000px; margin: 40px auto 30px; padding: 0 20px;
 }
-.pv-logo { display: flex; align-items: center; gap: 18px; }
 .pv-logo-name {
     font-size: 42px; font-weight: 900;
     background: linear-gradient(90deg, #7dd3fc 0%, #ffffff 100%);
@@ -68,7 +67,6 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     font-size: 14px; font-weight: 700; color: #7dd3fc;
     text-decoration: none; transition: 0.2s;
 }
-.pv-beer-btn:hover { border-color: #7dd3fc; background: #1e293b; color: #fff; }
 
 /* ── Stats Row ── */
 .pv-stats {
@@ -82,7 +80,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 .pv-stat-num { font-size: 38px; font-weight: 900; line-height: 1; margin-bottom: 6px; }
 .pv-stat-lbl { font-size: 11px; text-transform: uppercase; color: #475569; letter-spacing: 1.5px; }
 
-/* ── Strategy Card ── */
+/* ── Cards ── */
 .card {
     background: rgba(15, 23, 42, 0.6);
     backdrop-filter: blur(12px);
@@ -95,13 +93,12 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 .s-stat-under { background: #064e3b; color: #34d399; padding: 2px 8px; border-radius: 6px; font-weight: 800; }
 .s-stat-over { background: #450a0a; color: #f87171; padding: 2px 8px; border-radius: 6px; font-weight: 800; }
 
-/* ── Bet Cards with Odds Badges ── */
+/* ── Odds Badges ── */
 .odds-row { display: flex; align-items: center; gap: 12px; margin-top: 15px; }
 .odds-badge {
     background: #052e16; color: #4ade80; border: 1px solid #064e3b;
     padding: 6px 14px; border-radius: 10px; font-weight: 900; font-size: 18px;
 }
-.fair-label { color: #475569; font-size: 13px; font-weight: 600; }
 
 /* ── Hunt Button ── */
 div.stButton > button {
@@ -112,14 +109,10 @@ div.stButton > button {
     letter-spacing: 2px !important; text-transform: uppercase !important;
     margin: 20px auto !important; display: block;
 }
-div.stButton > button:hover {
-    background: #111d35 !important;
-    box-shadow: 0 0 28px rgba(56, 189, 248, 0.2) !important;
-}
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Live Scores Fetch (ESPN API)
+# 3. Live Scores Fetch
 @st.cache_data(ttl=120)
 def fetch_scores():
     scores = []
@@ -153,10 +146,8 @@ if "fetched_at" not in st.session_state: st.session_state.fetched_at = 0
 
 def update_data():
     if not api_key:
-        st.error("ODDS_API_KEY not found in environment variables.")
+        st.error("ODDS_API_KEY not found.")
         return
-    # find_ev_bets should return list of dicts with keys: 
-    # ['Sport', 'Game', 'Market', 'Side', 'Target Odds', 'Fair Odds', 'EV %']
     bets, errors = find_ev_bets(api_key)
     st.session_state.bets = bets
     st.session_state.fetched_at = time.time()
@@ -164,26 +155,24 @@ def update_data():
 if (time.time() - st.session_state.fetched_at) >= CACHE_TIME:
     update_data()
 
-# ── RENDER START ──
+# ── RENDER ──
 
-# 1. Ticker
+# 1. Ticker (Updated status span for visibility)
 scores = fetch_scores()
 if scores:
-    chips = "".join([f'<span class="score-chip">{s["league"]} | {s["away"]} {s["a_score"]} · {s["home"]} {s["h_score"]} <span style="color:#1e293b; margin-left:5px;">{s["status"]}</span></span>' for s in scores])
+    chips = "".join([f'<span class="score-chip">{s["league"]} | {s["away"]} {s["a_score"]} · {s["home"]} {s["h_score"]} <span class="score-status">{s["status"]}</span></span>' for s in scores])
     st.markdown(f'<div class="scores-bar"><div class="scores-track">{chips * 3}</div></div>', unsafe_allow_html=True)
 
-# 2. Hero Header
+# 2. Header
 st.markdown(f"""
 <div class="pv-header">
-    <div class="pv-logo">
-        <div>
-            <div class="pv-logo-name">PropVault</div>
-            <div style="color:#475569; font-size:14px; font-weight:500;">When the "Fair Value" price is lower than the available odds, you have a mathematical edge.</div>
-        </div>
+    <div>
+        <div class="pv-logo-name">PropVault</div>
+        <div style="color:#475569; font-size:14px; font-weight:500;">Sharp-Aggregated Player Prop Edges</div>
     </div>
     <div style="display:flex; gap:15px; align-items:center;">
         <a class="pv-beer-btn" href="https://www.buymeacoffee.com/notjxck" target="_blank">🍺 Buy me a beer</a>
-        <div style="color:#22c55e; border:1px solid #166534; background:#052e16; padding:8px 20px; border-radius:100px; font-size:12px; font-weight:900; letter-spacing:1px;">● LIVE</div>
+        <div style="color:#22c55e; border:1px solid #166534; background:#052e16; padding:8px 20px; border-radius:100px; font-size:12px; font-weight:900;">● LIVE</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -201,10 +190,9 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# 4. Main Content Wrapper
+# 4. Main Content
 st.markdown('<div style="max-width:1000px; margin: 0 auto; padding: 0 20px;">', unsafe_allow_html=True)
 
-# Anti-Public Strategy Card
 st.markdown("""
 <div class="card strategy-box">
     <h3 style="color:#ef4444; margin:0 0 10px 0; font-size:18px; font-weight:900;">📉 The "Anti-Public" Strategy</h3>
@@ -218,53 +206,46 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Hunt/Refresh Button
 if st.button("🦄 HUNT FOR UNICORNS"):
-    with st.spinner("Scanning Spreads & Totals..."):
+    with st.spinner("Scanning NBA & MLB Props..."):
         update_data()
     st.rerun()
 
-# Bet Card List
+# Bet Cards
 if bets:
-    st.markdown('<p style="color:#475569; font-weight:800; font-size:11px; letter-spacing:2px; margin:30px 0 15px 0; text-transform:uppercase;">Live Game Edges</p>', unsafe_allow_html=True)
+    st.markdown('<p style="color:#475569; font-weight:800; font-size:11px; letter-spacing:2px; margin:30px 0 15px 0; text-transform:uppercase;">Live Prop Edges</p>', unsafe_allow_html=True)
     for b in bets:
-        # Style based on EV strength
         tier_color = "#7dd3fc" if b["EV %"] >= 7 else "#fbbf24" if b["EV %"] >= 5 else "#64748b"
         
         st.markdown(f"""
         <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
             <div style="flex:1;">
                 <div style="color:{tier_color}; font-size:10px; font-weight:800; letter-spacing:1px; margin-bottom:6px; text-transform:uppercase;">
-                    {b.get('Sport', 'SPORT')} · {b.get('Market', 'MARKET')}
+                    {b.get('Sport')} · {b.get('Market')}
                 </div>
-                <div style="font-size:24px; font-weight:900; color:#fff; margin-bottom:4px; letter-spacing:-0.5px;">
-                    {b.get('Side', 'Unknown')}
+                <div style="font-size:24px; font-weight:900; color:#fff; margin-bottom:2px;">
+                    {b.get('Player', 'Unknown Player')}
                 </div>
-                <div style="color:#64748b; font-size:14px; font-weight:500;">
-                    {b.get('Game', 'Game Details')}
+                <div style="font-size:18px; font-weight:700; color:{tier_color}; margin-bottom:8px;">
+                    {b.get('Side')}
+                </div>
+                <div style="color:#64748b; font-size:13px; font-weight:500;">
+                    {b.get('Game')}
                 </div>
                 <div class="odds-row">
-                    <span class="odds-badge">{b.get('Target Odds', 'N/A')}</span>
-                    <span class="fair-label">Fair: {b.get('Fair Odds', 'N/A')}</span>
+                    <span class="odds-badge">{b.get('Target Odds')}</span>
+                    <span style="color:#475569; font-size:13px; font-weight:600;">Fair (Pinny): {b.get('Fair Odds')}</span>
                 </div>
             </div>
             <div style="text-align:right;">
                 <div style="color:{tier_color}; font-size:38px; font-weight:900; letter-spacing:-2px; line-height:1;">
-                    +{b.get('EV %', 0)}%
+                    +{b.get('EV %')}%
                 </div>
-                <div style="color:#334155; font-size:10px; font-weight:800; text-transform:uppercase; margin-top:5px; letter-spacing:1px;">
-                    Expected Value
-                </div>
+                <div style="color:#334155; font-size:10px; font-weight:800; text-transform:uppercase; margin-top:5px;">Expected Value</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 else:
-    st.markdown("""
-    <div style="text-align:center; padding:60px 0; color:#1e293b;">
-        <div style="font-size:40px; margin-bottom:10px;">📊</div>
-        <div style="font-size:16px; font-weight:700;">No edges found for Spreads or Totals right now.</div>
-        <div style="font-size:13px;">Markets are currently tight. Refresh in a few minutes.</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div style="text-align:center; padding:60px 0; color:#334155; font-weight:700;">No Prop Edges found. Try again in 5 mins.</div>', unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
