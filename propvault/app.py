@@ -190,7 +190,7 @@ errors = st.session_state.get("errors", [])
 fetched_at = st.session_state.get("fetched_at", "")
 
 if fetched_at:
-    st.markdown(f"<p style='color:#3a5060;font-size:11px;margin-bottom:8px'>Last updated {fetched_at}</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color:#3a5060;font-size:11px;margin-bottom:8px'>✓ Just refreshed</p>", unsafe_allow_html=True)
 
 
 # ── Errors ────────────────────────────────────────────────────────────────────
