@@ -26,7 +26,7 @@ st.markdown("""
                 transition: 0.3s;
                 box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
             ">
-                🍺 Please buy me a beer to support the server
+                🍺 Buy me a beer to support the server
             </div>
         </a>
     </div>
@@ -169,15 +169,19 @@ _, center_col, _ = st.columns([1, 2, 1])
 with center_col:
     # Small UI touch: show how long until the next fresh data is available
     st.markdown("<div style='text-align:center; color:#475569; font-size:11px; margin-bottom:-15px;'>API Data cached for 2 mins</div>", unsafe_allow_html=True)  
-    if st.button("🦄 HUNT FOR UNICORNS"):
-        with st.spinner("Analyzing Markets..."):
-        # We catch THREE things because the function returns THREE things
-        res, errs, ts = cached_hunt(api_key) 
+if st.button("🦄 HUNT FOR UNICORNS"):
+    # Line 173 (Indented 4 spaces)
+    with st.spinner("Analyzing Markets..."):
+        # Line 175 (Indented 8 spaces)
+        res, errs, ts = cached_hunt(api_key)
+        
+        # All these lines also need 8 spaces
         st.session_state["bets"] = res
         st.session_state["last_run"] = ts
-
+        
         if errs:
-            for e in errs: st.error(e)
+            for e in errs:
+                st.error(e)
 
 # ── RESULTS ──────────────────────────────────────────────────────────────────
 if st.session_state["last_run"]:
