@@ -3,20 +3,21 @@ import time
 import streamlit as st
 from ev_engine import find_ev_bets
 
-# ── PAGE CONFIG ──────────────────────────────────────────────────────────────
+# ── 1. PAGE CONFIG & STYLING ────────────────────────────────────────────────
 st.set_page_config(page_title="PropVault", page_icon="🦄", layout="wide")
 
-# ── CSS (Now includes centering and button heft) ─────────────────────────────
 st.markdown("""
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  
   html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     background-color: #0d1117 !important;
     font-family: 'Inter', sans-serif !important;
   }
+  
   .block-container { padding: 2rem 2.5rem !important; max-width: 900px !important; margin: 0 auto; }
 
-  /* CENTERING THE BUTTON CONTAINER */
+  /* CENTERING THE UNICORN BUTTON */
   div.stButton { text-align: center; display: flex; justify-content: center; margin: 30px 0; }
 
   div.stButton > button {
@@ -27,7 +28,7 @@ st.markdown("""
     text-transform: uppercase !important; letter-spacing: 1px !important;
     box-shadow: 0 0 15px rgba(125, 211, 252, 0.1); transition: all 0.3s ease;
   }
-  div.stButton > button:hover { transform: scale(1.02); box-shadow: 0 0 25px rgba(125, 211, 252, 0.3); }
+  div.stButton > button:hover { transform: scale(1.02); box-shadow: 0 0 25px rgba(125, 211, 252, 0.3); color: #fff; border-color: #fff; }
 
   /* STRATEGY GUIDE */
   .guide-container {
@@ -39,7 +40,7 @@ st.markdown("""
     border: 1px solid #334155; text-align: center;
   }
   
-  /* CARDS */
+  /* BET CARDS */
   .bet-card {
     background: #131920; border: 1px solid #1e2a38; border-radius: 20px;
     padding: 24px; margin-bottom: 16px; display: flex; align-items: center; gap: 24px;
@@ -48,19 +49,22 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ── LOGIC & STATE ────────────────────────────────────────────────────────────
-# Update your get_api_key function to strip any hidden spaces
+# ── 2. KEY LOADING (Fixed NameError & 401 issues) ──────────────────────────
 def get_api_key():
-    raw_key = st.secrets.get("ODDS_API_KEY", os.getenv("ODDS_API_KEY", ""))
-    return raw_key.strip() # This removes any accidental spaces/newlines
+    # Looks in .streamlit/secrets.toml first, then Environment Variables
+    key = st.secrets.get("ODDS_API_KEY", os.getenv("ODDS_API_KEY", ""))
+    return key.strip() if key else ""
 
-# Initialize session state so data persists
+# Call it here so 'api_key' is available globally in the script
+api_key = get_api_key()
+
+# ── 3. SESSION STATE (Persistence) ──────────────────────────────────────────
 if "bets" not in st.session_state:
     st.session_state["bets"] = []
 if "last_run" not in st.session_state:
     st.session_state["last_run"] = None
 
-# ── HEADER ───────────────────────────────────────────────────────────────────
+# ── 4. HEADER & GUIDE ───────────────────────────────────────────────────────
 st.markdown("""
 <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
     <div style="font-size: 40px;">🦄</div>
@@ -68,31 +72,39 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ── STRATEGY GUIDE ───────────────────────────────────────────────────────────
 st.markdown("""
 <div class="guide-container">
     <div style="font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 10px;">🚀 Strategy & Tier Guide</div>
     <div style="color: #94a3b8; margin-bottom: 24px;">Comparing Pinnacle Sharp Liquidity vs Novig Lines.</div>
     <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-        <div class="legend-item" style="border-top: 4px solid #94a3b8;"><div style="color:#94a3b8; font-size:12px; font-weight:800;">STANDARD</div><div style="font-weight:700;">2% - 5% EV</div></div>
-        <div class="legend-item" style="border-top: 4px solid #facc15;"><div style="color:#facc15; font-size:12px; font-weight:800;">PREMIUM</div><div style="font-weight:700;">5% - 7% EV</div></div>
-        <div class="legend-item" style="border-top: 4px solid #7dd3fc;"><div style="color:#7dd3fc; font-size:12px; font-weight:800;">🦄 UNICORN</div><div style="font-weight:700;">7%+ EV</div></div>
+        <div class="legend-item" style="border-top: 4px solid #94a3b8;"><div style="color:#94a3b8; font-size:12px; font-weight:800;">STANDARD</div><div style="font-weight:700; color:white;">2% - 5% EV</div></div>
+        <div class="legend-item" style="border-top: 4px solid #facc15;"><div style="color:#facc15; font-size:12px; font-weight:800;">PREMIUM</div><div style="font-weight:700; color:white;">5% - 7% EV</div></div>
+        <div class="legend-item" style="border-top: 4px solid #7dd3fc;"><div style="color:#7dd3fc; font-size:12px; font-weight:800;">🦄 UNICORN</div><div style="font-weight:700; color:white;">7%+ EV</div></div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── THE BUTTON (Centered with Spacers) ───────────────────────────────────────
+# ── 5. THE CENTERED BUTTON ──────────────────────────────────────────────────
+# Using spacers [1, 2, 1] helps Streamlit layout, but CSS does the heavy lifting
 _, center_col, _ = st.columns([1, 2, 1])
+
 with center_col:
     if st.button("🦄 HUNT FOR UNICORNS"):
-        with st.spinner("Analyzing Markets..."):
-            results, errors = find_ev_bets(api_key)
-            st.session_state["bets"] = results
-            st.session_state["last_run"] = time.strftime("%H:%M:%S")
-            if errors:
-                for err in errors: st.error(err)
+        if not api_key:
+            st.error("Missing API Key! Check your secrets.toml.")
+        else:
+            with st.spinner("Analyzing Markets..."):
+                # find_ev_bets is imported from ev_engine.py
+                results, errors = find_ev_bets(api_key)
+                st.session_state["bets"] = results
+                st.session_state["last_run"] = time.strftime("%H:%M:%S")
+                
+                if errors:
+                    # Show errors (like 401 or 422) if they happen
+                    for err in errors:
+                        st.sidebar.error(err)
 
-# ── RESULTS ──────────────────────────────────────────────────────────────────
+# ── 6. RESULTS DISPLAY ──────────────────────────────────────────────────────
 if st.session_state["last_run"]:
     st.markdown(f"<div style='text-align:center; color:#475569; font-size:12px; margin-bottom:20px;'>Last Update: {st.session_state['last_run']}</div>", unsafe_allow_html=True)
 
