@@ -13,7 +13,7 @@ st.markdown("""
         padding-top: 60px; 
         margin-bottom: -45px;
     ">
-        <a href="https://www.buymeacoffee.com/YOUR_USERNAME" target="_blank" style="text-decoration: none;">
+        <a href="https://www.buymeacoffee.com/notjxck" target="_blank" style="text-decoration: none;">
             <div style="
                 color: #ffffff; 
                 font-size: 13px; 
