@@ -75,23 +75,18 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── LOGIC & STATE ────────────────────────────────────────────────────────────
-def get_api_key():
-    # We only look at Railway Environment Variables now to avoid the red error box
-    return os.environ.get("ODDS_API_KEY", "")
+import os
 
-# THIS IS THE MISSING LINE:
-api_key = get_api_key()
+# 1. Grab the key directly from the server's brain (Railway)
+api_key = os.environ.get("ODDS_API_KEY", "")
 
-# ⚡ THIS IS THE MAGIC PART: CACHING
-# We set the TTL to 120 seconds (2 minutes). 
-# If anyone clicks the button within 5 mins of the last hit, 
-# it pulls the result from memory instead of the API.
-@st.cache_data(ttl=120, show_spinner=False)
-def cached_hunt(api_key):
-    results, errors = find_ev_bets(api_key)
+@st.cache_data(ttl=120, show_spinner=False) # Back to 2 minutes for live tracking
+def cached_hunt(key_to_use):
+    clean_key = key_to_use.strip() if key_to_use else ""
+    results, errors = find_ev_bets(clean_key)
     return results, errors, time.strftime("%H:%M:%S")
 
-# Initialize session state so data persists
+# Initialize session state
 if "bets" not in st.session_state:
     st.session_state["bets"] = []
 if "last_run" not in st.session_state:
