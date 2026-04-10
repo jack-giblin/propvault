@@ -129,25 +129,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-<div class="legend-item" style="border-top: 4px solid #7dd3fc;"><div style="color:#7dd3fc; font-size:12px; font-weight:800;">🦄 UNICORN</div><div style="font-weight:700;">7%+ EV</div></div>
-    </div>
-
-    <div style="
-        margin-top: 25px; 
-        padding-top: 15px; 
-        border-top: 1px solid #1e2a38; 
-        font-size: 13px; 
-        color: #64748b; 
-        font-style: italic; 
-        line-height: 1.5;
-    ">
-        🛡️ <b>Quality Control:</b> PropVault is built for sustainable growth, not chasing outliers. 
-        We cap EV at 15% and Win Prob at 40% to filter out "trap" lines and low-liquidity longshots. 
-        We focus on high-probability discrepancies where the math is most reliable.
-    </div>
-</div>
-""", unsafe_allow_html=True
-
 # ── 7. PRO TIPS (The "Under" Bias) ──────────────────────────────────────────
 st.markdown("""
 <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px; border-left: 5px solid #ef4444; margin-bottom: 25px;">
