@@ -83,10 +83,10 @@ def get_api_key():
 api_key = get_api_key()
 
 # ⚡ THIS IS THE MAGIC PART: CACHING
-# We set the TTL to 300 seconds (5 minutes). 
+# We set the TTL to 120 seconds (2 minutes). 
 # If anyone clicks the button within 5 mins of the last hit, 
 # it pulls the result from memory instead of the API.
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=120, show_spinner=False)
 def cached_hunt(api_key):
     results, errors = find_ev_bets(api_key)
     return results, errors, time.strftime("%H:%M:%S")
