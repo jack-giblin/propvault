@@ -46,7 +46,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 .score-chip {
     display: inline-flex; align-items: center; gap: 10px;
     margin: 0 30px;
-    font-size: 13px; font-weight: 700; color: #94a3b8;
+    font-size: 13px; font-weight: 700; color: #ffffff;
 }
 
 /* ── Brand Header ── */
