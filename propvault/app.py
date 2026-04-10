@@ -82,6 +82,15 @@ def get_api_key():
 
 api_key = get_api_key()
 
+# ⚡ THIS IS THE MAGIC PART: CACHING
+# We set the TTL to 300 seconds (5 minutes). 
+# If anyone clicks the button within 5 mins of the last hit, 
+# it pulls the result from memory instead of the API.
+@st.cache_data(ttl=300, show_spinner=False)
+def cached_hunt(api_key):
+    results, errors = find_ev_bets(api_key)
+    return results, errors, time.strftime("%H:%M:%S")
+
 # Initialize session state so data persists
 if "bets" not in st.session_state:
     st.session_state["bets"] = []
@@ -149,11 +158,14 @@ st.markdown("""
 # ── THE BUTTON (Centered with Spacers) ───────────────────────────────────────
 _, center_col, _ = st.columns([1, 2, 1])
 with center_col:
+    # Small UI touch: show how long until the next fresh data is available
+    st.markdown("<div style='text-align:center; color:#475569; font-size:11px; margin-bottom:-15px;'>API Data cached for 5 mins to save credits</div>", unsafe_allow_html=True)  
     if st.button("🦄 HUNT FOR UNICORNS"):
         with st.spinner("Analyzing Markets..."):
-            results, errors = find_ev_bets(api_key)
+            # Call the CACHED version of the function
+            results, errors, timestamp = cached_hunt(api_key)         
             st.session_state["bets"] = results
-            st.session_state["last_run"] = time.strftime("%H:%M:%S")
+            st.session_state["last_run"] = timestamp
             if errors:
                 for err in errors: st.error(err)
 
