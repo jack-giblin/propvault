@@ -1,9 +1,9 @@
 import httpx
-import time
 import requests
 from datetime import datetime
-from typing import Optional
+from typing import List, Dict, Tuple, Optional
 
+# ── Configuration ─────────────────────────────────────────────────────────────
 BASE_URL = "https://parlay-api.com/v1"
 MIN_EV = 2.5
 MAX_EV_CAP = 15.0
@@ -11,109 +11,134 @@ MIN_WIN_PROB = 0.40
 SHARP_BOOK = "pinnacle"
 TARGET_BOOK = "draftkings"
 
-SPORTS = ["basketball_nba", "baseball_mlb"]
-MAIN_MARKETS = ["spreads", "totals"]
-PROP_MARKETS = ["player_points", "player_rebounds", "player_assists", "player_threes", "pitcher_strikeouts", "batter_home_runs"]
+# Markets to request from the API
+TARGET_MARKETS = "h2h,spreads,totals,player_points,player_rebounds,player_assists,player_strikeouts"
 
 MARKET_LABELS = {
-    "spreads": "Spread", "totals": "Total", "player_points": "Points",
-    "player_rebounds": "Rebounds", "player_assists": "Assists",
-    "player_threes": "3PT Made", "pitcher_strikeouts": "Strikeouts",
-    "batter_home_runs": "Home Runs"
+    "spreads": "Spread", "totals": "Total", "h2h": "Moneyline",
+    "player_points": "Points", "player_rebounds": "Rebounds", 
+    "player_assists": "Assists", "player_threes": "3PT Made", 
+    "pitcher_strikeouts": "Strikeouts", "batter_home_runs": "Home Runs"
 }
 
-# ── Math ──────────────────────────────────────────────────────────────────────
+# ── Math Utilities ────────────────────────────────────────────────────────────
 def american_to_decimal(o: float) -> float:
-    return o / 100 + 1 if o > 0 else 100 / abs(o) + 1
+    try:
+        if o > 0:
+            return (o / 100) + 1
+        return (100 / abs(o)) + 1
+    except ZeroDivisionError:
+        return 1.0
 
 def decimal_to_american(d: float) -> str:
     if d <= 1.001: return "+100"
-    return f"+{round((d - 1) * 100)}" if d >= 2 else str(round(-100 / (d - 1)))
+    if d >= 2.0:
+        return f"+{round((d - 1) * 100)}"
+    return str(round(-100 / (d - 1)))
 
-def no_vig_prob(price_a: float, price_b: float) -> tuple[float, float]:
-    pa, pb = 1/american_to_decimal(price_a), 1/american_to_decimal(price_b)
-    total = pa + pb
-    return pa / total, pb / total
+def no_vig_prob(price_a: float, price_b: float) -> Tuple[float, float]:
+    """Calculates fair probability using the power method or additive method."""
+    try:
+        da, db = american_to_decimal(price_a), american_to_decimal(price_b)
+        pa, pb = 1/da, 1/db
+        total = pa + pb
+        return pa / total, pb / total
+    except Exception:
+        return 0.5, 0.5
 
 def fmt_odds(o: int) -> str:
     return f"+{o}" if o > 0 else str(o)
 
-# ── Processing ────────────────────────────────────────────────────────────────
+# ── String Formatting ──────────────────────────────────────────────────────────
 def _fmt_side(name: str, point: float, market_key: str, description: str = "") -> str:
+    # Clean up names (e.g., "Over 220.5" instead of "Over 220.5")
+    clean_name = name.strip()
     if any(x in market_key for x in ["player_", "pitcher_", "batter_"]):
         prefix = f"{description} " if description else ""
-        return f"{prefix}{name} {point}"
-    if market_key == "totals": return f"{name} {abs(point)}"
-    pt = f"+{point}" if point > 0 else str(point)
-    return f"{name} {pt}"
+        return f"{prefix}{clean_name} {point}"
+    
+    if market_key == "totals": 
+        return f"{clean_name} {abs(point)}"
+    
+    pt_str = f"+{point}" if point > 0 else str(point)
+    return f"{clean_name} {pt_str}" if point != 0 else clean_name
 
 # ── API Logic ─────────────────────────────────────────────────────────────────
-def find_ev_bets(api_key):
+def find_ev_bets(api_key: str) -> Tuple[List[Dict], List[str]]:
     all_bets = []
     errors = []
     
-    # Batch markets to save credits (1 credit per sport)
-    target_markets = "h2h,spreads,totals,player_points,player_rebounds,player_assists,player_strikeouts"
-    
+    # Normalize book names once
+    sharp_target = SHARP_BOOK.lower().strip()
+    retail_target = TARGET_BOOK.lower().strip()
+
     for sport in ["basketball_nba", "baseball_mlb"]: 
-        url = f"https://parlay-api.com/v1/sports/{sport}/odds"
-        
+        url = f"{BASE_URL}/sports/{sport}/odds"
         params = {
             "apiKey": api_key,
             "regions": "us",
-            "markets": target_markets,
+            "markets": TARGET_MARKETS,
             "oddsFormat": "american"
         }
         
         try:
-            response = requests.get(url, params=params, timeout=10)
+            response = requests.get(url, params=params, timeout=12)
             if response.status_code != 200:
+                errors.append(f"API Error {response.status_code} on {sport}")
                 continue
             
             events = response.json()
+            if not events:
+                continue
+
             for event in events:
-                # Normalize bookmaker names to lowercase
-                bookies = {b['title'].lower(): b['markets'] for b in event.get('bookmakers', [])}
+                # Map bookmakers by lowercased title for easier lookups
+                bookies = {b['title'].lower().strip(): b['markets'] for b in event.get('bookmakers', [])}
                 
-                # Use variables (SHARP_BOOK/TARGET_BOOK) defined at the top of your file
-                if SHARP_BOOK in bookies and TARGET_BOOK in bookies:
-                    for s_mkt in bookies[SHARP_BOOK]:
+                if sharp_target in bookies and retail_target in bookies:
+                    for s_mkt in bookies[sharp_target]:
                         m_key = s_mkt['key']
                         
-                        # Find the matching market in the Target Book (e.g., DraftKings)
-                        n_mkt = next((m for m in bookies[TARGET_BOOK] if m['key'] == m_key), None)
+                        # Find matching market in DraftKings
+                        n_mkt = next((m for m in bookies[retail_target] if m['key'] == m_key), None)
                         
-                        if n_mkt and len(s_mkt['outcomes']) == 2:
+                        # We only analyze 2-way markets (Over/Under, Spread/Spread, Team A/Team B)
+                        if n_mkt and len(s_mkt['outcomes']) == 2 and len(n_mkt['outcomes']) == 2:
                             s_outs = s_mkt['outcomes']
-                            try:
-                                # Calculate Fair Probability using Sharp Lines
-                                p1_fair, p2_fair = no_vig_prob(s_outs[0]['price'], s_outs[1]['price'])
-                            except: 
-                                continue
+                            n_outs = n_mkt['outcomes']
+                            
+                            # 1. Get Fair Probabilities from Sharp (Pinnacle)
+                            p1_fair, p2_fair = no_vig_prob(s_outs[0]['price'], s_outs[1]['price'])
+                            fairs = [p1_fair, p2_fair]
 
                             for i in range(2):
-                                # Match specific side (e.g., "Over" or "Lakers") and Point value
-                                n_out = next((o for o in n_mkt['outcomes'] if o['name'] == s_outs[i]['name'] 
-                                              and float(o.get('point', 0)) == float(s_outs[i].get('point', 0))), None)
+                                sharp_side = s_outs[i]
+                                fair_prob = fairs[i]
                                 
-                                if n_out:
-                                    fair_prob = p1_fair if i == 0 else p2_fair
-                                    # Calculate the Expected Value
-                                    ev = (fair_prob * american_to_decimal(n_out["price"]) - 1) * 100
+                                # 2. Find matching side in Target Book
+                                # Logic: Must match Name AND Point value exactly
+                                target_side = next((o for o in n_outs if o['name'] == sharp_side['name'] 
+                                                   and float(o.get('point', 0)) == float(sharp_side.get('point', 0))), None)
+                                
+                                if target_side:
+                                    # 3. Calculate EV
+                                    # EV = (Fair Prob * Decimal Odds) - 1
+                                    target_decimal = american_to_decimal(target_side["price"])
+                                    ev = (fair_prob * target_decimal - 1) * 100
                                     
-                                    # Final filtering
-                                    if MIN_EV < ev < MAX_EV_CAP and fair_prob >= MIN_WIN_PROB:
+                                    # 4. Filter and Append
+                                    if MIN_EV <= ev <= MAX_EV_CAP and fair_prob >= MIN_WIN_PROB:
                                         all_bets.append({
                                             "Game": f"{event['away_team']} @ {event['home_team']}",
                                             "Market": MARKET_LABELS.get(m_key, m_key.replace('_', ' ').title()),
-                                            "Side": _fmt_side(n_out["name"], n_out.get("point", 0), m_key, n_out.get("description", "")),
-                                            "Target Odds": fmt_odds(int(n_out["price"])),
+                                            "Side": _fmt_side(target_side["name"], target_side.get("point", 0), m_key, target_side.get("description", "")),
+                                            "Target Odds": fmt_odds(int(target_side["price"])),
                                             "Fair Odds": decimal_to_american(1/fair_prob),
                                             "EV %": round(ev, 2)
                                         })
                                         
         except Exception as e:
-            errors.append(f"Error on {sport}: {str(e)}")
+            errors.append(f"System Error on {sport}: {str(e)}")
 
     # Sort results by the highest EV
     all_bets.sort(key=lambda x: x["EV %"], reverse=True)
