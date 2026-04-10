@@ -151,7 +151,7 @@ if "bets" not in st.session_state:
     st.session_state["bets"] = []
     st.session_state["fetched_at"] = None
 
-col_ref, _ = st.columns([2, 4])
+col_ref, _ = st.columns([2.5, 3.5])
 with col_ref:
     refresh = st.button("🦄 HUNT FOR UNICORNS")
 
