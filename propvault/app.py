@@ -153,7 +153,7 @@ if "bets" not in st.session_state:
 
 col_ref, _ = st.columns([1.5, 4.5])
 with col_ref:
-    refresh = st.button("🌈 HUNT FOR UNICORNS")
+    refresh = st.button("🦄 HUNT FOR UNICORNS")
 
 if refresh or st.session_state["fetched_at"] is None:
     with st.spinner("Calculating probability distributions..."):
