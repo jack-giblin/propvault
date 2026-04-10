@@ -4,16 +4,17 @@ from typing import Optional
 
 BASE_URL = "https://api.the-odds-api.com/v4"
 MIN_EV = 1.5
-MAX_EV_CAP = 15.0      # Increased slightly to catch rare MLB home run unicorns
+MAX_EV_CAP = 15.0      
 MIN_WIN_PROB = 0.35    
 SHARP_BOOK = "pinnacle"
 TARGET_BOOK = "novig"
 
 SPORTS = ["basketball_nba", "baseball_mlb"]
-MAIN_MARKETS = ["spreads", "totals"]
-PROP_MARKETS = [
-    "player_points", "player_rebounds", "player_assists", 
-    "player_threes", "pitcher_strikeouts", "batter_home_runs"
+
+# Split these to avoid the 422 error
+MARKET_BATCHES = [
+    ["spreads", "totals"],
+    ["player_points", "player_rebounds", "player_assists", "player_threes", "pitcher_strikeouts", "batter_home_runs"]
 ]
 
 MARKET_LABELS = {
@@ -51,9 +52,7 @@ def fmt_odds(o: int) -> str:
     return f"+{o}" if o > 0 else str(o)
 
 def _fmt_side(name: str, point: float, market_key: str, description: str = "") -> str:
-    """Combines player name and line into a clean string."""
     if any(x in market_key for x in ["player_", "pitcher_", "batter_"]):
-        # e.g., "Simeon Woods Richardson Under 3.5"
         prefix = f"{description} " if description else ""
         return f"{prefix}{name} {point}"
     if market_key == "totals":
@@ -68,67 +67,70 @@ def find_ev_bets(api_key: str):
     errors = []
 
     for sport in SPORTS:
-        try:
-            # Fetch events for the sport
-            url = f"{BASE_URL}/sports/{sport}/odds"
-            params = {
-                "apiKey": api_key, 
-                "regions": "us", 
-                "markets": ",".join(MAIN_MARKETS + PROP_MARKETS), 
-                "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}", 
-                "oddsFormat": "american"
-            }
-            
-            with httpx.Client(timeout=20) as client:
-                resp = client.get(url, params=params)
-                resp.raise_for_status()
-                events = resp.json()
-
-            for event in events:
-                game_name = f"{event['away_team']} vs {event['home_team']}"
-                pinnacle = next((b for b in event["bookmakers"] if b["key"] == SHARP_BOOK), None)
-                novig = next((b for b in event["bookmakers"] if b["key"] == TARGET_BOOK), None)
-
-                if not pinnacle or not novig: continue
-
-                for pin_mkt in pinnacle["markets"]:
-                    m_key = pin_mkt["key"]
-                    nov_mkt = next((m for m in novig["markets"] if m["key"] == m_key), None)
-                    if not nov_mkt: continue
-
-                    for p_out in pin_mkt["outcomes"]:
-                        # Match logic: must match Name (Over/Under) AND Point AND Description (Player Name)
-                        n_out = next((o for o in nov_mkt["outcomes"] 
-                                     if o["name"] == p_out["name"] 
-                                     and o.get("point") == p_out.get("point")
-                                     and o.get("description") == p_out.get("description")), None)
-                        if not n_out: continue
+        # We loop through batches to keep the API happy
+        for batch in MARKET_BATCHES:
+            try:
+                url = f"{BASE_URL}/sports/{sport}/odds"
+                params = {
+                    "apiKey": api_key, 
+                    "regions": "us", 
+                    "markets": ",".join(batch), 
+                    "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}", 
+                    "oddsFormat": "american"
+                }
+                
+                with httpx.Client(timeout=20) as client:
+                    resp = client.get(url, params=params)
+                    
+                    # If it still hits a 422, we capture it and move on
+                    if resp.status_code == 422:
+                        errors.append(f"Batch limit hit for {sport} ({batch[0]}...)")
+                        continue
                         
-                        # Find the opposite side on Pinnacle to devig
-                        other_p = next((o for o in pin_mkt["outcomes"] 
-                                       if o["name"] != p_out["name"] 
-                                       and o.get("point") == p_out.get("point")
-                                       and o.get("description") == p_out.get("description")), None)
-                        if not other_p: continue
+                    resp.raise_for_status()
+                    events = resp.json()
 
-                        fair_prob, _ = no_vig_prob(p_out["price"], other_p["price"])
-                        ev = calc_ev(fair_prob, american_to_decimal(n_out["price"]))
+                for event in events:
+                    game_name = f"{event['away_team']} vs {event['home_team']}"
+                    pinnacle = next((b for b in event["bookmakers"] if b["key"] == SHARP_BOOK), None)
+                    novig = next((b for b in event["bookmakers"] if b["key"] == TARGET_BOOK), None)
 
-                        # Apply filters
-                        if MIN_EV < ev < MAX_EV_CAP and fair_prob >= MIN_WIN_PROB:
-                            all_bets.append({
-                                "Sport": sport.split("_")[1].upper(),
-                                "Game": game_name,
-                                "Market": MARKET_LABELS.get(m_key, m_key),
-                                "Side": _fmt_side(n_out["name"], n_out.get("point", 0), m_key, n_out.get("description", "")),
-                                "Novig Odds": fmt_odds(int(n_out["price"])),
-                                "Fair Odds": decimal_to_american(1/fair_prob),
-                                "EV %": round(ev, 2)
-                            })
+                    if not pinnacle or not novig: continue
 
-        except Exception as e:
-            errors.append(f"Error scanning {sport}: {str(e)}")
+                    for pin_mkt in pinnacle["markets"]:
+                        m_key = pin_mkt["key"]
+                        nov_mkt = next((m for m in novig["markets"] if m["key"] == m_key), None)
+                        if not nov_mkt: continue
 
-    # Sort by highest EV first
+                        for p_out in pin_mkt["outcomes"]:
+                            n_out = next((o for o in nov_mkt["outcomes"] 
+                                         if o["name"] == p_out["name"] 
+                                         and o.get("point") == p_out.get("point")
+                                         and o.get("description") == p_out.get("description")), None)
+                            if not n_out: continue
+                            
+                            other_p = next((o for o in pin_mkt["outcomes"] 
+                                           if o["name"] != p_out["name"] 
+                                           and o.get("point") == p_out.get("point")
+                                           and o.get("description") == p_out.get("description")), None)
+                            if not other_p: continue
+
+                            fair_prob, _ = no_vig_prob(p_out["price"], other_p["price"])
+                            ev = calc_ev(fair_prob, american_to_decimal(n_out["price"]))
+
+                            if MIN_EV < ev < MAX_EV_CAP and fair_prob >= MIN_WIN_PROB:
+                                all_bets.append({
+                                    "Sport": sport.split("_")[1].upper(),
+                                    "Game": game_name,
+                                    "Market": MARKET_LABELS.get(m_key, m_key),
+                                    "Side": _fmt_side(n_out["name"], n_out.get("point", 0), m_key, n_out.get("description", "")),
+                                    "Novig Odds": fmt_odds(int(n_out["price"])),
+                                    "Fair Odds": decimal_to_american(1/fair_prob),
+                                    "EV %": round(ev, 2)
+                                })
+
+            except Exception as e:
+                errors.append(f"Error scanning {sport}: {str(e)}")
+
     all_bets.sort(key=lambda x: x["EV %"], reverse=True)
     return all_bets, errors
