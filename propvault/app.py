@@ -118,7 +118,7 @@ st.markdown("""
 
 # ── STRATEGY GUIDE ───────────────────────────────────────────────────────────
 st.markdown("""
-    <div class="guide-container">
+<div class="guide-container">
     <div style="font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 10px;">🚀 Strategy & Tier Guide</div>
     <div style="color: #94a3b8; margin-bottom: 24px;">PropVault identifies price discrepancies by cross-referencing Pinnacle’s sharp-market liquidity against Novig’s live lines. When the "Fair Value" price is lower than the available odds, you have a mathematical edge.</div>
     <div style="display: flex; gap: 16px; flex-wrap: wrap;">
@@ -130,8 +130,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ... (inside your existing Strategy Guide markdown)
-    </div>
-    
+</div>
     <div style="
         margin-top: 25px; 
         padding-top: 15px; 
