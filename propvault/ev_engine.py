@@ -72,14 +72,14 @@ def find_ev_bets(api_key):
     # Adding 'player_points' or 'player_assists' here only costs 1 credit for the WHOLE league
     target_markets = "h2h,spreads,totals,player_points,player_assists"
     
-    for sport in ["basketball_nba", "baseball_mlb"]:
-      url = f"https://api.parlay-api.com/v4/sports/{sport}/odds/"
-        params = {
-            "apiKey": api_key,
-            "regions": "us",
-            "markets": target_markets,
-            "oddsFormat": "american"
-        }
+for sport in ["basketball_nba", "baseball_mlb"]:
+    url = f"https://api.parlay-api.com/v4/sports/{sport}/odds/"
+    params = {
+        "apiKey": api_key,
+        "regions": "us",
+        "markets": target_markets,
+        "oddsFormat": "american"
+    }
         
         try:
             response = requests.get(url, params=params)
