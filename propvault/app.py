@@ -129,8 +129,9 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-</div>
-    
+<div class="legend-item" style="border-top: 4px solid #7dd3fc;"><div style="color:#7dd3fc; font-size:12px; font-weight:800;">🦄 UNICORN</div><div style="font-weight:700;">7%+ EV</div></div>
+    </div>
+
     <div style="
         margin-top: 25px; 
         padding-top: 15px; 
@@ -145,7 +146,7 @@ st.markdown("""
         We focus on high-probability discrepancies where the math is most reliable.
     </div>
 </div>
-""", unsafe_allow_html=True)
+""", unsafe_allow_html=True
 
 # ── 7. PRO TIPS (The "Under" Bias) ──────────────────────────────────────────
 st.markdown("""
