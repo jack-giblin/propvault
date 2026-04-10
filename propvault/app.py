@@ -75,23 +75,21 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── LOGIC & STATE ────────────────────────────────────────────────────────────
-import os
-import streamlit as st
-
 def get_api_key():
-    # 1. Try pulling from Railway Variables first (Best way)
+    # 1. Try pulling from Railway Variables first
     key = os.environ.get("ODDS_API_KEY")
     
     # 2. If Railway variable is missing, safely try secrets
     if not key:
         try:
+            # Using .get and catching all Exceptions prevents the "No secrets found" crash
             key = st.secrets.get("ODDS_API_KEY", "")
-        except FileNotFoundError:
-            # If we are on Railway and no file exists, just set to empty
+        except Exception:
             key = ""
             
     return key.strip() if key else ""
 
+# This will now return an empty string instead of crashing the site
 api_key = get_api_key()
 
 # ⚡ THIS IS THE MAGIC PART: CACHING
