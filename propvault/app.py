@@ -157,29 +157,45 @@ def fetch_scores():
     return scores
 
 # 4. Data Management & Global Sync
-# Heartbeat for Data (15 mins)
 st_autorefresh(interval=15 * 60 * 1000, key="unicorn_heartbeat")
-# Live Timer Heartbeat (1 sec)
 st_autorefresh(interval=1000, key="timer_heartbeat")
 
 api_key = os.environ.get("ODDS_API_KEY", "")
+TIMESTAMP_FILE = "last_refresh.txt"
+
+def get_global_expiry():
+    """Reads or creates a global expiry time that persists across all refreshes."""
+    now = time.time()
+    if not os.path.exists(TIMESTAMP_FILE):
+        expiry = now + 900
+        with open(TIMESTAMP_FILE, "w") as f:
+            f.write(str(expiry))
+        return expiry
+    
+    with open(TIMESTAMP_FILE, "r") as f:
+        expiry = float(f.read())
+    
+    # If the global time has already passed, reset the file for the next 15 mins
+    if now > expiry:
+        expiry = now + 900
+        with open(TIMESTAMP_FILE, "w") as f:
+            f.write(str(expiry))
+            
+    return expiry
+
+# Get the ONE expiry time that everyone shares
+global_expiry = get_global_expiry()
 
 @st.cache_data(ttl=900) 
-def get_global_data_bundle(api_key):
-    # We pull the bets and set a FIXED expiry target 15 mins from now
+def get_cached_bets(api_key):
+    # This only runs when the 15-minute TTL expires
     bets, errors = find_ev_bets(api_key)
-    return {
-        "bets": bets if bets else [],
-        "expiry_timestamp": time.time() + 900 
-    }
+    return bets if bets else []
 
-# Pull the bundle
-bundle = get_global_data_bundle(api_key)
-bets = bundle["bets"]
+bets = get_cached_bets(api_key)
 
-# TIMER LOGIC: Calculate based on the FIXED target
-# Since 'expiry_timestamp' is inside the cache, it won't change on refresh.
-remaining = max(0, int(bundle["expiry_timestamp"] - time.time()))
+# TIMER LOGIC: Math based on the Global File
+remaining = max(0, int(global_expiry - time.time()))
 mins, secs = divmod(remaining, 60)
 
 # ── RENDER ──
