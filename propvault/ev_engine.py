@@ -11,13 +11,13 @@ MIN_WIN_PROB = 0.40
 SHARP_BOOK = "pinnacle"
 TARGET_BOOK = "novig"
 
-SPORTS = ["basketball_nba"]  # keep stable first (add MLB later if needed)
+SPORTS = ["basketball_nba", "baseball_mlb"]  # keep stable first (add MLB later if needed)
 
 PROP_MARKETS = [
-    "player_points",
     "player_rebounds",
     "player_assists",
     "player_threes",
+    "pitcher_strikeouts"
 ]
 
 # ── Math ───────────────────────────────────────────────────────────────
