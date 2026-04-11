@@ -121,6 +121,45 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 </style>
 """, unsafe_allow_html=True)
 
+@media (max-width: 768px) {
+    .pv-header {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+
+    .pv-logo-name {
+        font-size: 28px !important;
+    }
+
+    .pv-stats {
+        grid-template-columns: 1fr !important;
+        gap: 10px;
+    }
+
+    .pv-stat {
+        padding: 16px !important;
+    }
+
+    .pv-stat-num {
+        font-size: 28px !important;
+    }
+
+    .card {
+        padding: 18px !important;
+    }
+
+    .score-chip {
+        font-size: 11px !important;
+        margin: 0 12px !important;
+    }
+
+    .pv-beer-btn {
+        padding: 8px 16px !important;
+        font-size: 12px !important;
+    }
+}
+
 # 3. CACHE
 @st.cache_data(ttl=1800)
 def get_cached_bets(_key):
