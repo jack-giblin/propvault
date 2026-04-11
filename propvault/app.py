@@ -157,45 +157,36 @@ def fetch_scores():
     return scores
 
 # ── 4. DATA MANAGEMENT & SYNC ──
-
-# This stays at the top of the block to ensure the clock ticks
-from streamlit_autorefresh import st_autorefresh
-st_autorefresh(interval=1000, key="countdown_tick")
+st_autorefresh(interval=5000, key="countdown_tick")
 
 api_key = os.environ.get("ODDS_API_KEY", "")
 
-def get_sync_timer():
-    """Calculates seconds remaining until the next 15-minute interval."""
-    now = time.time()
-    remaining = 3600 - (now % 3600)
-    m, s = divmod(int(remaining), 60)
-    return m, s, now
-
-mins, secs, current_ts = get_sync_timer()
-
-# The seed changes only when we cross a 15-minute boundary (e.g., 12:15, 12:30)
-time_seed = int(current_ts // 3600)
-
-@st.cache_data(ttl=3600)
-def get_cached_bets(api_key):
-    from ev_engine import find_ev_bets
-    bets, errors = find_ev_bets(api_key)
-    return bets if bets else None
-
-
-# ── FETCH ──
-raw_bets = get_cached_bets(api_key)
-
-# ── STABILIZE OUTPUT (prevents empty refresh bug) ──
-if "last_good_bets" not in st.session_state:
+if "bets_fetched_at" not in st.session_state:
+    st.session_state.bets_fetched_at = 0
+    st.session_state.cached_bets = []
     st.session_state.last_good_bets = []
 
-if raw_bets:
-    bets = raw_bets
-    st.session_state.last_good_bets = raw_bets
-else:
-    bets = st.session_state.last_good_bets
+now = time.time()
+time_since_fetch = now - st.session_state.bets_fetched_at
+remaining = 1800 - time_since_fetch
 
+if time_since_fetch >= 1800:
+    raw_bets, errors = find_ev_bets(api_key)
+    st.session_state.cached_bets = raw_bets if raw_bets else []
+    st.session_state.bets_fetched_at = now
+    remaining = 1800
+    if raw_bets:
+        st.session_state.last_good_bets = raw_bets
+
+if st.session_state.cached_bets:
+    bets = st.session_state.cached_bets
+elif st.session_state.last_good_bets:
+    bets = st.session_state.last_good_bets
+else:
+    bets = []
+
+m, s = divmod(int(remaining), 60)
+mins, secs = m, s
 # ── RENDER ──
 
 # 1. Scores Ticker
