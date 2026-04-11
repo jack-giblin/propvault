@@ -194,14 +194,12 @@ if scores:
     st.markdown(f'<div class="scores-bar"><div class="scores-track">{chips * 3}</div></div>', unsafe_allow_html=True)
 
 # 2. Timer Logic
-if 'last_refresh' not in st.session_state:
-    st.session_state.last_refresh = time.time()
-elapsed = time.time() - st.session_state.last_refresh
-remaining = max(0, int(900 - elapsed))
-if remaining <= 0:
-    st.session_state.last_refresh = time.time()
-    remaining = 900
-mins, secs = divmod(remaining, 60)
+def get_sync_timer():
+    now = time.time()
+    remaining = 900 - (now % 900)
+    m, s = divmod(int(remaining), 60)
+    return m, s
+mins, secs = get_sync_timer()
 
 # --- 3. HEADER ---
 st.markdown(f"""
