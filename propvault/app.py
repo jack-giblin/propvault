@@ -255,34 +255,29 @@ st.markdown(f"""
 
 # 4. Strategy Guide
 st.markdown("""
-<div style="max-width:1000px; margin: 0 auto 30px; padding: 0 20px;">
-    <div class="card" style="border-left: 4px solid #f87171;">
-        <h3 style="color:#f87171; margin:0 0 10px 0; font-size:18px; font-weight:900;">
-            📉 The "Anti-Public" Strategy
-        </h3>
-
-        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 12px 0;">
-            We specialize in <span style="color:#ffffff; font-weight:800;">UNDER bets only</span>.
-            When public perception inflates totals and player lines, markets drift above true expectation.
-            We target the correction phase — where <span style="color:#f87171; font-weight:800;">regression restores balance</span>.
-        </p>
-
-        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 12px 0;">
-            Every bet must pass strict filters:
-        </p>
-
-        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 12px 0;">
-            • EV between <span style="color:#ffffff; font-weight:800;">1.5% and 8%</span><br>
-            • Minimum <span style="color:#ffffff; font-weight:800;">40% win probability</span><br>
-            • Only <span style="color:#f87171; font-weight:800;">under outcomes</span>
-        </p>
-
-        <p style="color:#ffffff; font-size:14px; line-height:1.7; margin:0; font-style:italic;">
-            No noise. No hype. Only mispriced downside.
-        </p>
-    </div>
+<div style="max-width:1000px; margin:0 auto 30px; padding:20px; background-color:#0e1117; border-left:4px solid #f87171; border-radius:8px;">
+    <h3 style="color:#f87171; margin:0 0 10px 0; font-size:18px; font-weight:900;">
+        📉 The "Anti-Public" Strategy
+    </h3>
+    <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 12px 0;">
+        We specialize in <span style="color:#ffffff; font-weight:800;">UNDER bets only</span>. 
+        When public perception inflates totals and player lines, markets drift above true expectation. 
+        We target the correction phase — where <span style="color:#f87171; font-weight:800;">regression restores balance</span>.
+    </p>
+    <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 12px 0;">
+        Every bet must pass strict filters:
+    </p>
+    <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 12px 0;">
+        • EV between <span style="color:#ffffff; font-weight:800;">1.5% and 8%</span><br>
+        • Minimum <span style="color:#ffffff; font-weight:800;">40% win probability</span><br>
+        • Only <span style="color:#f87171; font-weight:800;">under outcomes</span>
+    </p>
+    <p style="color:#ffffff; font-size:14px; line-height:1.7; margin:0; font-style:italic;">
+        No noise. No hype. Only mispriced downside.
+    </p>
 </div>
 """, unsafe_allow_html=True)
+
 # 5. The Feed (Mapped to Engine Output)
 if bets:
     sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
