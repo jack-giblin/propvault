@@ -15,10 +15,15 @@ TARGET_BOOK = "novig"
 # Only Under side is evaluated for prop markets
 UNDER_ONLY_MARKETS = {"pitcher_strikeouts", "player_assists"}
 
-SPORTS_MARKETS = {
-    "basketball_nba": ["totals", "player_assists"],
-    "baseball_mlb": ["totals", "pitcher_strikeouts"],
+GAME_MARKETS = {
+    "basketball_nba": ["totals"],
+    "baseball_mlb": ["totals"],
     "icehockey_nhl": ["totals"],
+}
+
+PROP_MARKETS = {
+    "basketball_nba": ["player_assists"],
+    "baseball_mlb": ["pitcher_strikeouts"],
 }
 
 # ── Math ───────────────────────────────────────────────────────────────
