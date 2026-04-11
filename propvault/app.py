@@ -63,7 +63,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 .pv-logo-name {
     font-size: 42px;
     font-weight: 900;
-    background: linear-gradient(90deg, #f87171 0%, #ffffff 100%);
+    background: linear-gradient(90deg, #38cdff 0%, #ffffff 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -1.5px;
@@ -106,7 +106,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     font-weight: 900;
     line-height: 1;
     margin-bottom: 6px;
-    color: #f87171;
+    color: #38cdff;
 }
 
 .pv-stat-lbl {
