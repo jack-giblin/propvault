@@ -157,19 +157,32 @@ def fetch_scores():
     return scores
 
 # 4. Data Management & Refresh
-# Heartbeat for Data (15 mins)
+# Syncs Data every 15 mins
 st_autorefresh(interval=15 * 60 * 1000, key="unicorn_heartbeat")
-# Heartbeat for Clock (1 sec)
+# Live Timer Heartbeat (1 sec) - This keeps the clock moving
 st_autorefresh(interval=1000, key="timer_heartbeat")
 
 api_key = os.environ.get("ODDS_API_KEY", "")
 
 @st.cache_data(ttl=900) 
 def get_cached_ev_data(api_key):
+    # We pull the bets and "stamp" them with the exact time they were found
     bets, errors = find_ev_bets(api_key)
-    return bets if bets else []
+    return {
+        "bets": bets if bets else [],
+        "fetched_at": time.time()
+    }
 
-bets = get_cached_ev_data(api_key)
+# Pull the data bundle
+data_bundle = get_cached_ev_data(api_key)
+bets = data_bundle["bets"]
+fetched_at = data_bundle["fetched_at"]
+
+# TIMER LOGIC: Calculate remaining time based on the DATA age, not the USER session
+refresh_interval = 900
+elapsed = time.time() - fetched_at
+remaining = max(0, int(refresh_interval - elapsed))
+mins, secs = divmod(remaining, 60)
 
 # ── RENDER ──
 
