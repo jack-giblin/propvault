@@ -259,10 +259,12 @@ st.markdown("""
 # 6. Feed with Price Comparison
 if not bets:
     st.markdown("""
+    <div style="max-width:1000px; margin:0 auto; padding:0 20px;">
     <div class="card" style="text-align:center; padding:40px;">
         <div style="font-size:26px; font-weight:900; color:#7dd3fc;">
             No bets at this time
         </div>
+    </div>
     </div>
     """, unsafe_allow_html=True)
 
