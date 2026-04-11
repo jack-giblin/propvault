@@ -210,13 +210,6 @@ elif st.session_state.last_good_bets:
 else:
     bets = []
 
-if not bets:
-    bets = [
-        {"Sport": "NBA", "Game": "Boston Celtics @ New York Knicks", "Market": "Rebounds", "Player": "Karl-Anthony Towns", "Side": "Under 8.5", "Target Odds": "+118", "Fair Odds": "-105", "Fair Prob": "51.2%", "EV %": 14.92},
-        {"Sport": "NBA", "Game": "Boston Celtics @ New York Knicks", "Market": "Points", "Player": "Jayson Tatum", "Side": "Under 26.5", "Target Odds": "+104", "Fair Odds": "-102", "Fair Prob": "54.1%", "EV %": 9.57},
-        {"Sport": "MLB", "Game": "Chicago Cubs @ St. Louis Cardinals", "Market": "Strikeouts", "Player": "Paul Skenes", "Side": "Over 7.5", "Target Odds": "+112", "Fair Odds": "+105", "Fair Prob": "48.8%", "EV %": 6.23},
-    ]
-
 m, s = divmod(int(remaining), 60)
 mins, secs = m, s
 # ── RENDER ──
