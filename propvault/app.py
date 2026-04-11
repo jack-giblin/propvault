@@ -137,6 +137,32 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 }
 .under-theme { background: #064e3b; color: #34d399; }
 .over-theme { background: #450a0a; color: #f87171; }
+
+@media (max-width: 600px) {
+    .pv-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+    .pv-logo-name {
+        font-size: 32px;
+    }
+    .pv-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    .pv-stat-num {
+        font-size: 28px;
+    }
+    .card {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 12px;
+    }
+    .strategy-badge {
+        font-size: 14px !important;
+        padding: 4px 10px !important;
+    }
+}
 </style>
 """, unsafe_allow_html=True)
 
