@@ -196,7 +196,7 @@ now = time.time()
 time_since_fetch = now - st.session_state.bets_fetched_at
 remaining = 1800 - time_since_fetch
 
-if time_since_fetch >= 1800:
+if True:
     raw_bets, errors = find_ev_bets(api_key)
     st.session_state.cached_bets = raw_bets if raw_bets else []
     st.session_state.bets_fetched_at = now
