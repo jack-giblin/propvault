@@ -1,5 +1,4 @@
 import requests
-import streamlit as st
 from datetime import datetime, timezone
 from typing import List, Dict, Tuple
 
@@ -128,9 +127,6 @@ def get_player_l5(player_name: str, market_key: str) -> str:
     return None
 
 # ── Core Engine ────────────────────────────────────────────────────────
-
-@st.cache_data(ttl=1800)
-def find_ev_bets(api_key: str):
 
 def find_ev_bets(api_key: str):
     bets = []
