@@ -202,26 +202,36 @@ if not bets:
         "Sport": "MLB"
     }]
 
+
 # ── RENDER ──
 
-# 1. Scores Ticker (Always Visible)
+# 1. Scores Ticker
 scores = fetch_scores()
 if scores:
     chips = "".join([f'<span class="score-chip">{s["league"]} | {s["away"]} {s["a_score"]} · {s["home"]} {s["h_score"]} <span class="score-status">{s["status"]}</span></span>' for s in scores])
     st.markdown(f'<div class="scores-bar"><div class="scores-track">{chips * 3}</div></div>', unsafe_allow_html=True)
 
-# 2. Brand Header (Always Visible)
-st.markdown("""
+# 2. Brand Header & Timer
+if 'last_refresh' not in st.session_state:
+    st.session_state.last_refresh = time.time()
+remaining = max(0, int(900 - (time.time() - st.session_state.last_refresh)))
+mins, secs = divmod(remaining, 60)
+
+st.markdown(f"""
 <div class="pv-header">
-    <div class="pv-logo-name">PropVault</div>
+    <div>
+        <div class="pv-logo-name">PropVault</div>
+        <div style="color: #475569; font-size: 11px; font-weight: 800; letter-spacing: 1px;">
+            NEXT REFRESH: <span style="color: #7dd3fc;">{mins:02d}:{secs:02d}</span>
+        </div>
+    </div>
     <a href="https://buymeacoffee.com/jackgiblin" class="pv-beer-btn" target="_blank">
         <span>🍺</span> Buy me a beer
     </a>
 </div>
 """, unsafe_allow_html=True)
 
-# 3. Stats Row (Moved OUTSIDE the 'if bets' so it always shows)
-# We use defaults (0) if bets is empty
+# 3. Stats Row
 num_edges = len(bets) if bets else 0
 avg_val = (sum(b.get('EV %', 0) for b in bets) / num_edges) if num_edges > 0 else 0
 top_val = max(b.get('EV %', 0) for b in bets) if num_edges > 0 else 0
@@ -234,9 +244,25 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+# 4. Anti-Public Strategy Guide (NOW PLACED DIRECTLY UNDER STATS)
+st.markdown("""
+<div style="max-width:1000px; margin: 0 auto 30px; padding: 0 20px;">
+    <div class="card" style="border-left: 4px solid #ef4444;">
+        <h3 style="color:#ef4444; margin:0 0 10px 0; font-size:18px; font-weight:900;">📉 The "Anti-Public" Strategy</h3>
+        <p style="color:#94a3b8; font-size:14px; line-height:1.7; margin:0;">
+            Data confirms: <span class="under-theme" style="padding:2px 6px; border-radius:4px; color:#34d399; font-weight:800;">Overs return -2.26% ROI</span> while 
+            <span class="under-theme" style="padding:2px 6px; border-radius:4px; color:#34d399; font-weight:800;">Unders return +3.33% ROI</span>.
+            An <span style="color:#ffffff; font-weight:700;">Over</span> almost always requires flawless play. 
+            An <span style="color:#ffffff; font-weight:700;">Under</span> wins if there is an injury, blowout, foul trouble, or just a bad night. 
+            <span style="color:#ffffff; font-style:italic;">Bet on the chaos, not the perfection.</span>
+        </p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 st.markdown('<div style="max-width:1000px; margin: 0 auto; padding: 0 20px;">', unsafe_allow_html=True)
 
-# 4. Main Feed
+# 5. Main Feed
 if bets:
     sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
     u = sorted_bets[0]
@@ -253,12 +279,11 @@ if bets:
                     <span style="font-size: 20px;">🦄</span>
                     <span style="background: #7dd3fc; color: #060912; padding: 2px 10px; border-radius: 100px; font-size: 11px; font-weight: 900;">THE LONE UNICORN</span>
                 </div>
-                <div style="font-size: 42px; font-weight: 900;">{u.get('Player')} <span class="strategy-badge {u_theme}">{u_side}</span></div>
-                <div style="color: #64748b; font-size: 15px;">{u.get('Market')} · {u.get('Game')}</div>
-                <div class="odds-row" style="margin-top: 25px;">
-                    <span class="odds-badge" style="background: #7dd3fc; color: #060912; border: none;">{u.get('Target Odds')}</span>
-                    <span style="color: #94a3b8; font-size: 14px;">Fair: {u.get('Fair Odds')}</span>
+                <div style="font-size: 42px; font-weight: 900;">{u.get('Player')}</div>
+                <div style="margin-top: 10px;">
+                    <span class="strategy-badge {u_theme}" style="font-size: 20px; padding: 6px 15px;">{u_side}</span>
                 </div>
+                <div style="color: #64748b; font-size: 15px; margin-top: 10px;">{u.get('Market')} · {u.get('Game')}</div>
             </div>
             <div style="text-align: right; align-self: center;">
                 <div style="color: #7dd3fc; font-size: 64px; font-weight: 900;">+{u.get('EV %')}%</div>
@@ -276,32 +301,18 @@ if bets:
         <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
             <div>
                 <div style="color:#64748b; font-size:10px; font-weight:900;">{b.get('Sport', '').upper()} · {b.get('Market', '').upper()}</div>
-                <div style="font-size:24px; font-weight:900;">{b.get('Player')} <span class="strategy-badge {b_theme}">{b_side}</span></div>
-                <div class="odds-row">
-                    <span class="odds-badge" style="font-size:16px;">{b.get('Target Odds')}</span>
-                    <span style="color:#475569; font-size:13px;">Fair: {b.get('Fair Odds')}</span>
+                <div style="font-size:24px; font-weight:900;">{b.get('Player')}</div>
+                <div style="margin-top: 5px;">
+                    <span class="strategy-badge {b_theme}" style="font-size: 16px; padding: 4px 12px;">{b_side}</span>
                 </div>
             </div>
             <div style="text-align:right;">
                 <div style="color:#7dd3fc; font-size:38px; font-weight:900;">+{b.get('EV %')}%</div>
+                <div style="color:#475569; font-size:12px;">Odds: {b.get('Target Odds')}</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 else:
-    # This shows if API is empty, but Logo/Stats stay above it
     st.markdown('<div style="text-align:center; padding:100px 0; color:#334155; font-size:18px; font-weight:700;">🦄 Hunting for unicorns...</div>', unsafe_allow_html=True)
-
-# 5. STRATEGY GUIDE (RESTORED at bottom)
-st.markdown("""
-<div class="card" style="border-left: 4px solid #7dd3fc; margin-top: 40px;">
-    <div style="font-weight: 900; font-size: 18px; color: #7dd3fc; margin-bottom: 15px;">UNICORN STRATEGY GUIDE</div>
-    <div style="font-size: 14px; color: #94a3b8; line-height: 1.6;">
-        • <b>The Lone Unicorn:</b> This is the mathematically highest edge currently available.<br>
-        • <b>EV %:</b> The percentage advantage you have over the sportsbook's implied probability.<br>
-        • <b>Target Odds:</b> Place your bet at these odds (or better) to maintain your edge.<br>
-        • <b>Bankroll:</b> We recommend using a 1/4 Kelly Criterion for bet sizing.
-    </div>
-</div>
-""", unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
