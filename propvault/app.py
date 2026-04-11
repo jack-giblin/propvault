@@ -177,13 +177,24 @@ mins, secs, current_ts = get_sync_timer()
 time_seed = int(current_ts // 900)
 
 @st.cache_data(ttl=900)
-def get_cached_bets(api_key, seed):
-    # This runs the engine ONLY when the seed changes or cache expires
+def get_cached_bets(api_key):
     from ev_engine import find_ev_bets
     bets, errors = find_ev_bets(api_key)
-    return bets if bets else []
+    return bets if bets else None
 
-bets = get_cached_bets(api_key, time_seed)
+
+# ── FETCH ──
+raw_bets = get_cached_bets(api_key)
+
+# ── STABILIZE OUTPUT (prevents empty refresh bug) ──
+if "last_good_bets" not in st.session_state:
+    st.session_state.last_good_bets = []
+
+if raw_bets:
+    bets = raw_bets
+    st.session_state.last_good_bets = raw_bets
+else:
+    bets = st.session_state.last_good_bets
 
 # ── RENDER ──
 
