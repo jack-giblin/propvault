@@ -353,9 +353,9 @@ if bets:
         if i == 0:
             # Highlighted Critical Anomaly
             card = f'<div class="card" style="border: 1px solid #f87171; position: relative; overflow: hidden;">' \
-                   f'<div style="position: absolute; right: -10px; top: -10px; font-size: 100px; opacity: 0.05;">🐻</div>' \
+                   f'<div style="position: absolute; right: -10px; top: -10px; font-size: 100px; opacity: 0.10;">📉</div>' \
                    f'<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; position: relative; z-index:1;">' \
-                   f'<div><div class="strategy-badge under-theme" style="margin-bottom: 12px; display: inline-block;">CRITICAL UNDER 📉</div>' \
+                   f'<div><div class="strategy-badge under-theme" style="margin-bottom: 12px; display: inline-block;">🎯 BEST UNDER</div>' \
                    f'<div style="font-size: 42px; font-weight: 900; line-height: 1;">{b.get("Player")}</div>' \
                    f'<div style="color: #cbd5e1; font-size: 16px; margin: 5px 0;">{b.get("Game")}</div>' \
                    f'{l5_display}' \
