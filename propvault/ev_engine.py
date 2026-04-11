@@ -54,6 +54,7 @@ def get_mlb_l5_strikeouts(player_name: str) -> str:
         people = search.json().get("people", [])
         if not people: return None
         player_id = people[0]["id"]
+        # Updated to 2026 for the current season
         logs = requests.get(f"https://statsapi.mlb.com/api/v1/people/{player_id}/stats", params={"stats": "gameLog", "group": "pitching", "season": 2026, "limit": 5}, timeout=8)
         splits = logs.json().get("stats", [{}])[0].get("splits", [])
         if not splits: return None
@@ -62,10 +63,8 @@ def get_mlb_l5_strikeouts(player_name: str) -> str:
     except: return None
 
 def get_player_l5(player_name: str, market_key: str) -> str:
-    if market_key == "player_assists":
-        val = get_nba_l5(player_name, "ast")
-        return f"L5 avg: {val} ast" if val else None
-    elif market_key == "pitcher_strikeouts":
+    # NBA check removed
+    if market_key == "pitcher_strikeouts":
         val = get_mlb_l5_strikeouts(player_name)
         return f"L5 avg: {val} K" if val else None
     return None
