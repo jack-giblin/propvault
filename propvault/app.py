@@ -171,13 +171,6 @@ def get_cached_ev_data(api_key):
 
 bets = get_cached_ev_data(api_key)
 
-# EMERGENCY OVERRIDE
-if not bets:
-    bets = [
-        {"Player": "Luka Doncic", "Side": "Over 9.5 Rebounds", "Market": "Player Rebounds", "Game": "DAL vs BOS", "EV %": 12.8, "Target Odds": "+115", "Fair Odds": "-105", "Sport": "NBA"},
-        {"Player": "Shohei Ohtani", "Side": "Over 1.5 Total Bases", "Market": "Total Bases", "Game": "LAD vs CHC", "EV %": 8.4, "Target Odds": "-110", "Fair Odds": "-125", "Sport": "MLB"}
-    ]
-
 # ── RENDER ──
 
 # 1. Scores Ticker
