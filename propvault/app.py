@@ -186,21 +186,31 @@ def fetch_scores():
 
 st_autorefresh(interval=30000, key="countdown_tick")
 
+import os
+import streamlit as st
+from ev_engine import find_ev_bets
+
 api_key = os.environ.get("ODDS_API_KEY", "")
 
-# 🔥 This handles everything (caching + timing)
-bets, errors = find_ev_bets(api_key)
+# 🔥 cached fetch (30 min global cache)
+@st.cache_data(ttl=1800)
+def get_bets(api_key: str):
+    return find_ev_bets(api_key)
 
-# Optional: show errors if something breaks
+# fetch data (cached automatically)
+bets, errors = get_bets(api_key)
+
+# show errors if any
 if errors:
     st.error(errors)
 
-# Simple fallback
-if not bets:
+# fallback
+if bets is None:
     bets = []
 
-# Fake countdown (just visual)
+# fake countdown (UI only)
 mins, secs = 30, 0
+
 # ── RENDER ──
 
 # 1. Scores Ticker
