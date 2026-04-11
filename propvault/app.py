@@ -166,9 +166,12 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 """, unsafe_allow_html=True)
 
 # 3. API Logic with 30-Minute Credit Protection
+
 @st.cache_data(ttl=1800)
-def get_cached_bets(_key):
-    return find_ev_bets(_key)
+def get_cached_bets():
+    api_key = os.environ.get("ODDS_API_KEY", "")
+    return find_ev_bets(api_key)
+
 
 @st.cache_data(ttl=300)
 def fetch_scores():
@@ -176,7 +179,8 @@ def fetch_scores():
     try:
         for league in ["mlb", "nba"]:
             r = requests.get(
-                f"https://site.api.espn.com/apis/site/v2/sports/{'baseball' if league=='mlb' else 'basketball'}/{league}/scoreboard",
+                f"https://site.api.espn.com/apis/site/v2/sports/"
+                f"{'baseball' if league=='mlb' else 'basketball'}/{league}/scoreboard",
                 timeout=5
             )
 
@@ -184,10 +188,8 @@ def fetch_scores():
                 for event in r.json().get("events", []):
                     comp = event["competitions"][0]
                     t = comp["competitors"]
-
                     home = next(x for x in t if x["homeAway"] == "home")
                     away = next(x for x in t if x["homeAway"] == "away")
-
                     scores.append({
                         "league": league.upper(),
                         "away": away["team"]["abbreviation"],
@@ -198,14 +200,14 @@ def fetch_scores():
                     })
     except:
         pass
-
     return scores
 
-# Auto-refresh UI
+
+# Auto-refresh UI (UI only, does NOT trigger API calls)
 st_autorefresh(interval=1800000, key="refresh_tick")
 
-api_key = os.environ.get("ODDS_API_KEY", "")
-bets, _ = get_cached_bets(api_key)
+# Load cached data (shared across ALL users)
+bets, _ = get_cached_bets()
 
 # ── RENDER ──
 
@@ -287,8 +289,8 @@ if bets:
         # ── Comparison Row: Novig vs Pinnacle ──
         comparison_bar = f"""
         <div style="display: flex; gap: 20px; margin-top: 12px; border-top: 1px solid #1e293b; padding-top: 10px;">
-            <div style="font-size: 11px; color: #94a3b8; font-weight:700;">NOVIG (TARGET): <span style="color: #38cdff;">{b_target_odds}</span></div>
-            <div style="font-size: 11px; color: #94a3b8; font-weight:700;">PINNACLE (SHARP): <span style="color: #f8fafc;">{b_fair_odds}</span></div>
+            <div style="font-size: 16px; color: #cbd5e1; font-weight:700;">NOVIG LINE: <span style="color: #38cdff;">{b_target_odds}</span></div>
+            <div style="font-size: 16px; color: #cbd5e1; font-weight:700;">PINNACLE (SHARP): <span style="color: #f8fafc;">{b_fair_odds}</span></div>
         </div>
         """
 
