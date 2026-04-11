@@ -4,7 +4,6 @@ import streamlit as st
 import textwrap
 from ev_engine import find_ev_bets
 from streamlit_autorefresh import st_autorefresh
-from cold_fronts import get_cold_fronts
 
 # 1. Page Configuration
 st.set_page_config(page_title="+EV BOOKIE", page_icon="📉", layout="wide")
