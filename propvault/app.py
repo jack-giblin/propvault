@@ -100,7 +100,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     font-weight: 900;
     line-height: 1;
     margin-bottom: 6px;
-    color: #7dd3fc;
+    color: #fbbf24;
 }
 .pv-stat-lbl {
     font-size: 11px;
@@ -176,7 +176,7 @@ st.markdown(f"""
 <div class="pv-header">
     <div>
         <div class="pv-logo-name">Entropy Capital</div>
-        <div style="color: #475569; font-size: 11px; font-weight: 800; letter-spacing: 1px;">
+        <div style="color: #cbd5e1; font-size: 11px; font-weight: 800; letter-spacing: 1px;">
             ASSET DEPRECIATION TERMINAL <span style="color: #f87171; margin-left:10px;">• Bet on the chaos, not the perfection.</span>
         </div>
     </div>
