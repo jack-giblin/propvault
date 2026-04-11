@@ -16,14 +16,9 @@ SPORTS_MARKETS = {
     "basketball_nba": [
         "player_rebounds",
         "player_assists",
-        "player_threes",
-        "player_points",
     ],
     "baseball_mlb": [
         "pitcher_strikeouts",
-        "batter_hits",
-        "batter_total_bases",
-        "batter_rbis",
     ],
 }
 
@@ -44,7 +39,6 @@ def fmt_odds(o: float) -> str:
 # ── Helpers ────────────────────────────────────────────────────────────
 
 def is_upcoming(commence_time_str: str) -> bool:
-    """Returns True if the event hasn't started yet."""
     try:
         commence = datetime.fromisoformat(commence_time_str.replace("Z", "+00:00"))
         return commence > datetime.now(timezone.utc)
@@ -52,17 +46,13 @@ def is_upcoming(commence_time_str: str) -> bool:
         return False
 
 def get_events_with_both_books(api_key: str, sport: str) -> List[Dict]:
-    """
-    Fetches top-level odds to pre-filter events that have both
-    Pinnacle and Novig listed — avoids burning per-event calls on misses.
-    """
     try:
         r = requests.get(
             f"{BASE_URL}/sports/{sport}/odds",
             params={
                 "apiKey": api_key,
                 "regions": "us,eu",
-                "markets": "h2h",  # lightweight market just for bookmaker presence check
+                "markets": "h2h",
                 "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}",
                 "oddsFormat": "american",
             },
@@ -75,8 +65,104 @@ def get_events_with_both_books(api_key: str, sport: str) -> List[Dict]:
             if is_upcoming(e.get("commence_time", ""))
             and {b["key"] for b in e.get("bookmakers", [])} >= {SHARP_BOOK, TARGET_BOOK}
         ]
-    except Exception as e:
+    except Exception:
         return []
+
+# ── L5 Stats Lookups ───────────────────────────────────────────────────
+
+def get_nba_l5(player_name: str, stat: str) -> str:
+    """
+    Fetches last 5 game average for a given NBA player and stat.
+    stat: 'reb' or 'ast'
+    """
+    try:
+        search = requests.get(
+            "https://www.balldontlie.io/api/v1/players",
+            params={"search": player_name, "per_page": 1},
+            timeout=8,
+        )
+        results = search.json().get("data", [])
+        if not results:
+            return None
+        player_id = results[0]["id"]
+
+        logs = requests.get(
+            "https://www.balldontlie.io/api/v1/stats",
+            params={
+                "player_ids[]": player_id,
+                "per_page": 5,
+                "seasons[]": 2024,
+            },
+            timeout=8,
+        )
+        games = logs.json().get("data", [])
+        if not games:
+            return None
+
+        values = [g.get(stat, 0) for g in games if g.get("min") and g["min"] != "00:00"]
+        if not values:
+            return None
+
+        avg = sum(values) / len(values)
+        return f"{avg:.1f}"
+    except Exception:
+        return None
+
+
+def get_mlb_l5_strikeouts(player_name: str) -> str:
+    """
+    Fetches last 5 starts avg strikeouts for a pitcher using MLB Stats API.
+    """
+    try:
+        search = requests.get(
+            "https://statsapi.mlb.com/api/v1/people/search",
+            params={"names": player_name, "sportId": 1},
+            timeout=8,
+        )
+        people = search.json().get("people", [])
+        if not people:
+            return None
+        player_id = people[0]["id"]
+
+        logs = requests.get(
+            f"https://statsapi.mlb.com/api/v1/people/{player_id}/stats",
+            params={
+                "stats": "gameLog",
+                "group": "pitching",
+                "season": 2025,
+                "limit": 5,
+            },
+            timeout=8,
+        )
+        splits = logs.json().get("stats", [{}])[0].get("splits", [])
+        if not splits:
+            return None
+
+        ks = [s["stat"].get("strikeOuts", 0) for s in splits[:5]]
+        if not ks:
+            return None
+
+        avg = sum(ks) / len(ks)
+        return f"{avg:.1f}"
+    except Exception:
+        return None
+
+
+def get_player_l5(player_name: str, market_key: str) -> str:
+    """
+    Routes to the correct stats lookup based on market.
+    Returns a display string like 'L5: 6.2 reb' or None.
+    """
+    if market_key == "player_rebounds":
+        val = get_nba_l5(player_name, "reb")
+        return f"L5 avg: {val} reb" if val else None
+    elif market_key == "player_assists":
+        val = get_nba_l5(player_name, "ast")
+        return f"L5 avg: {val} ast" if val else None
+    elif market_key == "pitcher_strikeouts":
+        val = get_mlb_l5_strikeouts(player_name)
+        return f"L5 avg: {val} K" if val else None
+    return None
 
 # ── Core Engine ────────────────────────────────────────────────────────
 
@@ -85,7 +171,6 @@ def find_ev_bets(api_key: str):
     errors = []
 
     for sport, prop_markets in SPORTS_MARKETS.items():
-        # Pre-filter: only events that have both books and haven't started
         eligible_events = get_events_with_both_books(api_key, sport)
 
         if not eligible_events:
@@ -124,7 +209,6 @@ def find_ev_bets(api_key: str):
                     if not target_market:
                         continue
 
-                    # Build lookup maps
                     sharp_map = {
                         (o["description"], o.get("point"), o["name"]): o
                         for o in sharp_market.get("outcomes", [])
@@ -154,6 +238,7 @@ def find_ev_bets(api_key: str):
                         ev = (fair_prob * american_to_decimal(target_o["price"]) - 1) * 100
 
                         if MIN_EV <= ev <= MAX_EV_CAP:
+                            l5 = get_player_l5(player, sharp_market["key"])
                             bets.append({
                                 "Sport": sport.split("_")[1].upper(),
                                 "Game": f"{event.get('away_team')} @ {event.get('home_team')}",
@@ -169,6 +254,7 @@ def find_ev_bets(api_key: str):
                                 "Fair Odds": fmt_odds(sharp_price),
                                 "Fair Prob": f"{fair_prob:.1%}",
                                 "EV %": round(ev, 2),
+                                "L5": l5,
                             })
 
             except Exception as e:
