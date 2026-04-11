@@ -203,6 +203,7 @@ if time_since_fetch >= 1800:
     remaining = 1800
     if raw_bets:
         st.session_state.last_good_bets = raw_bets
+
 if st.session_state.cached_bets:
     bets = st.session_state.cached_bets
 elif st.session_state.last_good_bets:
@@ -212,6 +213,7 @@ else:
 
 m, s = divmod(int(remaining), 60)
 mins, secs = m, s
+
 # ── RENDER ──
 
 # 1. Scores Ticker
@@ -220,15 +222,7 @@ if scores:
     chips = "".join([f'<span class="score-chip">{s["league"]} | {s["away"]} {s["a_score"]} · {s["home"]} {s["h_score"]} <span class="score-status">{s["status"]}</span></span>' for s in scores])
     st.markdown(f'<div class="scores-bar"><div class="scores-track">{chips * 3}</div></div>', unsafe_allow_html=True)
 
-# 2. Timer Logic
-def get_sync_timer():
-    now = time.time()
-    remaining = 3600 - (now % 3600)
-    m, s = divmod(int(remaining), 60)
-    return m, s
-mins, secs = get_sync_timer()
-
-# --- 3. HEADER ---
+# --- 2. HEADER ---
 st.markdown(f"""
 <div class="pv-header">
     <div>
@@ -241,7 +235,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# 4. Stats Row
+# 3. Stats Row
 num_edges = len(bets)
 avg_val = (sum(b.get('EV %', 0) for b in bets) / num_edges) if num_edges > 0 else 0
 top_val = max(b.get('EV %', 0) for b in bets) if num_edges > 0 else 0
@@ -250,11 +244,11 @@ st.markdown(f"""
 <div class="pv-stats">
     <div class="pv-stat"><div class="pv-stat-num">{num_edges}</div><div class="pv-stat-lbl">Edges Found</div></div>
     <div class="pv-stat"><div class="pv-stat-num">{avg_val:.1f}%</div><div class="pv-stat-lbl">Avg Value</div></div>
-    <div class="pv-stat"><div class="pv-stat-num">+{top_val}%</div><div class="pv-stat-lbl">Top Edge</div></div>
+    <div class="pv-stat"><div class="pv-stat-num">+{top_val:.1f}%</div><div class="pv-stat-lbl">Top Edge</div></div>
 </div>
 """, unsafe_allow_html=True)
 
-# 5. Strategy Guide
+# 4. Strategy Guide
 st.markdown("""
 <div style="max-width:1000px; margin: 0 auto 30px; padding: 0 20px;">
     <div class="card" style="border-left: 4px solid #f87171;">
@@ -272,7 +266,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# 6. Feed with Price Comparison
+# 5. Feed with Price Comparison
 if not bets:
     st.markdown("""
     <div style="max-width:1000px; margin:0 auto; padding:0 20px;">
@@ -291,6 +285,7 @@ else:
     u = sorted_bets[0]
     u_side = u.get('Side', '')
     u_theme = "under-theme" if "Under" in u_side else "over-theme"
+    u_l5 = f'<div style="color:#7dd3fc; font-size:12px; font-weight:800; margin-bottom:8px; letter-spacing:1px;">{u.get("L5")}</div>' if u.get("L5") else ""
     cards_html += f"""
     <div class="card" style="border: 2px solid #7dd3fc; background: linear-gradient(145deg, rgba(125, 211, 252, 0.1) 0%, rgba(6, 9, 18, 0.5) 100%); margin-bottom: 40px; position: relative; overflow: hidden;">
         <div style="position: absolute; right: -20px; top: -10px; font-size: 130px; opacity: 0.1; transform: rotate(15deg);">🦄</div>
@@ -301,6 +296,7 @@ else:
                 </div>
                 <div style="font-size: 42px; font-weight: 900; line-height: 1;">{u.get('Player')}</div>
                 <div style="color: #64748b; font-size: 16px; font-weight: 700; margin: 5px 0 10px 0;">{u.get('Game')}</div>
+                {u_l5}
                 <span class="strategy-badge {u_theme}" style="font-size: 20px; padding: 6px 15px; display: inline-block;">
                     {u_side} {u.get('Market')}
                 </span>
@@ -320,6 +316,7 @@ else:
     for b in sorted_bets[1:]:
         b_side = b.get('Side', '')
         b_theme = "under-theme" if "Under" in b_side else "over-theme"
+        b_l5 = f'<div style="color:#7dd3fc; font-size:12px; font-weight:800; margin-top:2px; letter-spacing:1px;">{b.get("L5")}</div>' if b.get("L5") else ""
         cards_html += f"""
         <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
             <div>
@@ -328,6 +325,7 @@ else:
                     <span class="strategy-badge {b_theme}" style="font-size:14px; margin-left:10px;">{b_side} {b.get('Market')}</span>
                 </div>
                 <div style="color: #475569; font-size: 14px; font-weight: 700; margin-top: 4px;">{b.get('Game')}</div>
+                {b_l5}
                 <div style="margin-top: 12px; display: flex; gap: 15px;">
                     <span style="color:#7dd3fc; font-weight:800;">Novig: {b.get('Target Odds')}</span>
                     <span style="color:#475569; font-weight:700;">Fair: {b.get('Fair Odds')}</span>
