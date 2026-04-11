@@ -1,4 +1,5 @@
 import requests
+from datetime import datetime, timezone
 from typing import List, Dict, Tuple
 
 BASE_URL = "https://api.the-odds-api.com/v4"
@@ -11,14 +12,20 @@ MIN_WIN_PROB = 0.40
 SHARP_BOOK = "pinnacle"
 TARGET_BOOK = "novig"
 
-SPORTS = ["basketball_nba", "baseball_mlb"]  # keep stable first (add MLB later if needed)
-
-PROP_MARKETS = [
-    "player_rebounds",
-    "player_assists",
-    "player_threes",
-    "pitcher_strikeouts"
-]
+SPORTS_MARKETS = {
+    "basketball_nba": [
+        "player_rebounds",
+        "player_assists",
+        "player_threes",
+        "player_points",
+    ],
+    "baseball_mlb": [
+        "pitcher_strikeouts",
+        "batter_hits",
+        "batter_total_bases",
+        "batter_rbis",
+    ],
+}
 
 # ── Math ───────────────────────────────────────────────────────────────
 
@@ -34,68 +41,100 @@ def no_vig_prob(a: float, b: float) -> Tuple[float, float]:
 def fmt_odds(o: float) -> str:
     return f"+{int(o)}" if o > 0 else str(int(o))
 
+# ── Helpers ────────────────────────────────────────────────────────────
+
+def is_upcoming(commence_time_str: str) -> bool:
+    """Returns True if the event hasn't started yet."""
+    try:
+        commence = datetime.fromisoformat(commence_time_str.replace("Z", "+00:00"))
+        return commence > datetime.now(timezone.utc)
+    except Exception:
+        return False
+
+def get_events_with_both_books(api_key: str, sport: str) -> List[Dict]:
+    """
+    Fetches top-level odds to pre-filter events that have both
+    Pinnacle and Novig listed — avoids burning per-event calls on misses.
+    """
+    try:
+        r = requests.get(
+            f"{BASE_URL}/sports/{sport}/odds",
+            params={
+                "apiKey": api_key,
+                "regions": "us,eu",
+                "markets": "h2h",  # lightweight market just for bookmaker presence check
+                "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}",
+                "oddsFormat": "american",
+            },
+            timeout=10,
+        )
+        r.raise_for_status()
+        events = r.json()
+        return [
+            e for e in events
+            if is_upcoming(e.get("commence_time", ""))
+            and {b["key"] for b in e.get("bookmakers", [])} >= {SHARP_BOOK, TARGET_BOOK}
+        ]
+    except Exception as e:
+        return []
+
 # ── Core Engine ────────────────────────────────────────────────────────
 
 def find_ev_bets(api_key: str):
     bets = []
     errors = []
 
-    for sport in SPORTS:
-        try:
-            events = requests.get(
-                f"{BASE_URL}/sports/{sport}/events",
-                params={"apiKey": api_key},
-                timeout=10
-            ).json()
+    for sport, prop_markets in SPORTS_MARKETS.items():
+        # Pre-filter: only events that have both books and haven't started
+        eligible_events = get_events_with_both_books(api_key, sport)
 
-            for event in events:
+        if not eligible_events:
+            continue
 
-                odds = requests.get(
+        for event in eligible_events:
+            try:
+                r = requests.get(
                     f"{BASE_URL}/sports/{sport}/events/{event['id']}/odds",
                     params={
                         "apiKey": api_key,
                         "regions": "us,eu",
-                        "markets": ",".join(PROP_MARKETS),
+                        "markets": ",".join(prop_markets),
                         "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}",
-                        "oddsFormat": "american"
+                        "oddsFormat": "american",
                     },
-                    timeout=10
-                ).json()
+                    timeout=10,
+                )
+                r.raise_for_status()
+                odds = r.json()
 
                 books = {b["key"]: b for b in odds.get("bookmakers", [])}
 
-                if SHARP_BOOK not in books:
+                if SHARP_BOOK not in books or TARGET_BOOK not in books:
                     continue
 
                 sharp_book = books[SHARP_BOOK]
-                target_book = books.get(TARGET_BOOK)
-
-                if not target_book:
-                    continue  # no target book → skip safely
+                target_book = books[TARGET_BOOK]
 
                 for sharp_market in sharp_book.get("markets", []):
                     target_market = next(
                         (m for m in target_book.get("markets", [])
                          if m["key"] == sharp_market["key"]),
-                        None
+                        None,
                     )
                     if not target_market:
                         continue
 
-                    # ── Build lookup maps (robust matching) ──
-                    sharp_map = {}
-                    for o in sharp_market.get("outcomes", []):
-                        key = (o["description"], o.get("point"), o["name"])
-                        sharp_map[key] = o
+                    # Build lookup maps
+                    sharp_map = {
+                        (o["description"], o.get("point"), o["name"]): o
+                        for o in sharp_market.get("outcomes", [])
+                    }
+                    target_map = {
+                        (o["description"], o.get("point"), o["name"]): o
+                        for o in target_market.get("outcomes", [])
+                    }
 
-                    target_map = {}
-                    for o in target_market.get("outcomes", []):
-                        key = (o["description"], o.get("point"), o["name"])
-                        target_map[key] = o
-
-                    # ── EV calculation ──
                     for (player, point, side), target_o in target_map.items():
-
                         opp_side = "Under" if side == "Over" else "Over"
                         key = (player, point, side)
                         opp_key = (player, point, opp_side)
@@ -120,17 +159,20 @@ def find_ev_bets(api_key: str):
                                 "Game": f"{event.get('away_team')} @ {event.get('home_team')}",
                                 "Market": sharp_market["key"]
                                     .replace("player_", "")
+                                    .replace("pitcher_", "")
+                                    .replace("batter_", "")
                                     .replace("_", " ")
                                     .title(),
                                 "Player": player,
                                 "Side": f"{side} {point}",
                                 "Target Odds": fmt_odds(target_o["price"]),
                                 "Fair Odds": fmt_odds(sharp_price),
-                                "EV %": round(ev, 2)
+                                "Fair Prob": f"{fair_prob:.1%}",
+                                "EV %": round(ev, 2),
                             })
 
-        except Exception as e:
-            errors.append(f"{sport}: {str(e)}")
+            except Exception as e:
+                errors.append(f"{sport} | {event.get('id', 'unknown')}: {str(e)}")
 
     bets.sort(key=lambda x: x["EV %"], reverse=True)
     return bets, errors
