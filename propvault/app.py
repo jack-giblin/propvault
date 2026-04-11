@@ -198,9 +198,9 @@ st.markdown("""
     <div class="card" style="border-left: 4px solid #f87171;">
         <h3 style="color:#f87171; margin:0 0 10px 0; font-size:18px; font-weight:900;">📉 The "Anti-Public" Strategy</h3>
         <p style="color:#94a3b8; font-size:14px; line-height:1.7; margin:0;">
-            Data confirms: <span style="color: #f87171; font-weight: 800;">Overs return -2.26% ROI</span> while <span style="color: #34d399; font-weight: 800;">Unders return +3.33% ROI</span>. 
-            An Under wins if there is an injury, blowout, foul trouble, or just a bad night.
-            <span style="color:#ffffff; font-style:italic;">Bet on the chaos, not the perfection.</span>
+            The Public bet on records and highlight reels. We bet on <span style="color: #f87171; font-weight: 800;">Regression to the Mean</span>. 
+            When the hype peaks, we short the outcome. Market crashes don't happen to us—we profit from them.
+            <span style="color:#ffffff; font-style:italic;">1929 Style: BET THE UNDER.</span>
         </p>
     </div>
 </div>
