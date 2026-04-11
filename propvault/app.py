@@ -277,12 +277,15 @@ if not bets:
 
 else:
     sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
-    cards_html = ""
+    cards_html = ""  # Start your HTML string
 
+    # 1. Setup the Lone Unicorn (Top Bet)
     u = sorted_bets[0]
     u_side = u.get('Side', '')
     u_theme = "under-theme" if "Under" in u_side else "over-theme"
     u_l5 = f'<div style="color:#7dd3fc; font-size:12px; font-weight:800; margin-bottom:8px; letter-spacing:1px;">{u.get("L5")}</div>' if u.get("L5") else ""
+    
+    # ADD the Unicorn HTML to the string
     cards_html += f"""
     <div class="card" style="border: 2px solid #7dd3fc; background: linear-gradient(145deg, rgba(125, 211, 252, 0.1) 0%, rgba(6, 9, 18, 0.5) 100%); margin-bottom: 40px; position: relative; overflow: hidden;">
         <div style="position: absolute; right: -20px; top: -10px; font-size: 130px; opacity: 0.1; transform: rotate(15deg);">🦄</div>
@@ -310,12 +313,13 @@ else:
     </div>
     """
 
+    # 2. Append the rest of the bets
     for b in sorted_bets[1:]:
         b_side = b.get('Side', '')
         b_theme = "under-theme" if "Under" in b_side else "over-theme"
         b_l5 = f'<div style="color:#7dd3fc; font-size:12px; font-weight:800; margin-top:2px; letter-spacing:1px;">{b.get("L5")}</div>' if b.get("L5") else ""
         cards_html += f"""
-        <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom: 20px;">
             <div>
                 <div style="font-size:24px; font-weight:900; line-height: 1.1;">
                     {b.get('Player')}
@@ -332,4 +336,5 @@ else:
         </div>
         """
 
+    # 3. RENDER EVERYTHING AT ONCE
     st.markdown(f'<div style="max-width:1000px; margin:0 auto; padding:0 20px;">{cards_html}</div>', unsafe_allow_html=True)
