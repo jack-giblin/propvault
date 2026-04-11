@@ -181,13 +181,13 @@ bets = get_cached_ev_data(api_key)
 
 # ── RENDER ──
 
-# 1. Scores Ticker
+# 1. Scores Ticker (Always Visible)
 scores = fetch_scores()
 if scores:
     chips = "".join([f'<span class="score-chip">{s["league"]} | {s["away"]} {s["a_score"]} · {s["home"]} {s["h_score"]} <span class="score-status">{s["status"]}</span></span>' for s in scores])
     st.markdown(f'<div class="scores-bar"><div class="scores-track">{chips * 3}</div></div>', unsafe_allow_html=True)
 
-# 2. Brand Header (BUY ME A BEER RESTORED)
+# 2. Brand Header (Always Visible)
 st.markdown("""
 <div class="pv-header">
     <div class="pv-logo-name">PropVault</div>
@@ -197,17 +197,19 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# 3. Stats Row
-if bets:
-    avg_ev = sum(b.get('EV %', 0) for b in bets) / len(bets)
-    max_ev = max(b.get('EV %', 0) for b in bets)
-    st.markdown(f"""
-    <div class="pv-stats">
-        <div class="pv-stat"><div class="pv-stat-num">{len(bets)}</div><div class="pv-stat-lbl">Edges Found</div></div>
-        <div class="pv-stat"><div class="pv-stat-num">{avg_ev:.1f}%</div><div class="pv-stat-lbl">Avg Value</div></div>
-        <div class="pv-stat"><div class="pv-stat-num">+{max_ev}%</div><div class="pv-stat-lbl">Top Edge</div></div>
-    </div>
-    """, unsafe_allow_html=True)
+# 3. Stats Row (Moved OUTSIDE the 'if bets' so it always shows)
+# We use defaults (0) if bets is empty
+num_edges = len(bets) if bets else 0
+avg_val = (sum(b.get('EV %', 0) for b in bets) / num_edges) if num_edges > 0 else 0
+top_val = max(b.get('EV %', 0) for b in bets) if num_edges > 0 else 0
+
+st.markdown(f"""
+<div class="pv-stats">
+    <div class="pv-stat"><div class="pv-stat-num">{num_edges}</div><div class="pv-stat-lbl">Edges Found</div></div>
+    <div class="pv-stat"><div class="pv-stat-num">{avg_val:.1f}%</div><div class="pv-stat-lbl">Avg Value</div></div>
+    <div class="pv-stat"><div class="pv-stat-num">+{top_val}%</div><div class="pv-stat-lbl">Top Edge</div></div>
+</div>
+""", unsafe_allow_html=True)
 
 st.markdown('<div style="max-width:1000px; margin: 0 auto; padding: 0 20px;">', unsafe_allow_html=True)
 
@@ -244,7 +246,6 @@ if bets:
     """, unsafe_allow_html=True)
 
     # THE HERD
-    st.markdown('<p style="color:#475569; font-weight:800; font-size:11px; letter-spacing:3px; margin-bottom: 20px;">THE HERD</p>', unsafe_allow_html=True)
     for b in sorted_bets[1:]:
         b_side = b.get('Side', '')
         b_theme = "under-theme" if "Under" in b_side else "over-theme"
@@ -264,6 +265,20 @@ if bets:
         </div>
         """, unsafe_allow_html=True)
 else:
+    # This shows if API is empty, but Logo/Stats stay above it
     st.markdown('<div style="text-align:center; padding:100px 0; color:#334155; font-size:18px; font-weight:700;">🦄 Hunting for unicorns...</div>', unsafe_allow_html=True)
+
+# 5. STRATEGY GUIDE (RESTORED at bottom)
+st.markdown("""
+<div class="card" style="border-left: 4px solid #7dd3fc; margin-top: 40px;">
+    <div style="font-weight: 900; font-size: 18px; color: #7dd3fc; margin-bottom: 15px;">UNICORN STRATEGY GUIDE</div>
+    <div style="font-size: 14px; color: #94a3b8; line-height: 1.6;">
+        • <b>The Lone Unicorn:</b> This is the mathematically highest edge currently available.<br>
+        • <b>EV %:</b> The percentage advantage you have over the sportsbook's implied probability.<br>
+        • <b>Target Odds:</b> Place your bet at these odds (or better) to maintain your edge.<br>
+        • <b>Bankroll:</b> We recommend using a 1/4 Kelly Criterion for bet sizing.
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
