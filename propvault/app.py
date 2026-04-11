@@ -294,55 +294,57 @@ if not bets:
 else:
     sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
 
-    st.markdown('<div style="max-width:1000px; margin:0 auto; padding:0 20px;">', unsafe_allow_html=True)
-    # UNICORN
-    u = sorted_bets[0]
-    u_side = u.get('Side', '')
-    u_theme = "under-theme" if "Under" in u_side else "over-theme"
-    st.markdown(f"""
-    <div class="card" style="border: 2px solid #7dd3fc; background: linear-gradient(145deg, rgba(125, 211, 252, 0.1) 0%, rgba(6, 9, 18, 0.5) 100%); margin-bottom: 40px; position: relative; overflow: hidden;">
-        <div style="position: absolute; right: -20px; top: -10px; font-size: 130px; opacity: 0.1; transform: rotate(15deg);">🦄</div>
-        <div style="display: flex; justify-content: space-between; position: relative; z-index: 1; flex-wrap: wrap; gap: 16px;">
-            <div>
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                    <span style="background: #7dd3fc; color: #060912; padding: 2px 10px; border-radius: 100px; font-size: 11px; font-weight: 900;">THE LONE UNICORN</span>
-                </div>
-                <div style="font-size: 42px; font-weight: 900; line-height: 1;">{u.get('Player')}</div>
-                <div style="color: #64748b; font-size: 16px; font-weight: 700; margin: 5px 0 10px 0;">{u.get('Game')}</div>
-                <span class="strategy-badge {u_theme}" style="font-size: 20px; padding: 6px 15px; display: inline-block;">
-                    {u_side} {u.get('Market')}
-                </span>
-                <div style="margin-top: 15px; display: flex; gap: 20px;">
-                    <div><div style="font-size: 10px; color: #7dd3fc; font-weight: 800;">NOVIG</div><div style="background: #7dd3fc; color: #060912; padding: 4px 12px; border-radius: 8px; font-weight: 900; font-size: 20px;">{u.get('Target Odds')}</div></div>
-                    <div><div style="font-size: 10px; color: #64748b; font-weight: 800;">PINNACLE FAIR</div><div style="color: #ffffff; font-weight: 900; font-size: 20px; padding: 4px 0;">{u.get('Fair Odds')}</div></div>
-                </div>
+    cards_html = ""
+# UNICORN
+u = sorted_bets[0]
+u_side = u.get('Side', '')
+u_theme = "under-theme" if "Under" in u_side else "over-theme"
+
+cards_html += f"""
+<div class="card" style="border: 2px solid #7dd3fc; background: linear-gradient(145deg, rgba(125, 211, 252, 0.1) 0%, rgba(6, 9, 18, 0.5) 100%); margin-bottom: 40px; position: relative; overflow: hidden;">
+    <div style="position: absolute; right: -20px; top: -10px; font-size: 130px; opacity: 0.1; transform: rotate(15deg);">🦄</div>
+    <div style="display: flex; justify-content: space-between; position: relative; z-index: 1; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                <span style="background: #7dd3fc; color: #060912; padding: 2px 10px; border-radius: 100px; font-size: 11px; font-weight: 900;">THE LONE UNICORN</span>
             </div>
-            <div style="text-align: right; align-self: center;">
-                <div style="color: #7dd3fc; font-size: 64px; font-weight: 900;">+{u.get('EV %')}%</div>
-                <div style="font-size: 11px; color: #64748b; font-weight: 800; letter-spacing: 2px;">EDGE</div>
+            <div style="font-size: 42px; font-weight: 900; line-height: 1;">{u.get('Player')}</div>
+            <div style="color: #64748b; font-size: 16px; font-weight: 700; margin: 5px 0 10px 0;">{u.get('Game')}</div>
+            <span class="strategy-badge {u_theme}" style="font-size: 20px; padding: 6px 15px; display: inline-block;">
+                {u_side} {u.get('Market')}
+            </span>
+            <div style="margin-top: 15px; display: flex; gap: 20px;">
+                <div><div style="font-size: 10px; color: #7dd3fc; font-weight: 800;">NOVIG</div><div style="background: #7dd3fc; color: #060912; padding: 4px 12px; border-radius: 8px; font-weight: 900; font-size: 20px;">{u.get('Target Odds')}</div></div>
+                <div><div style="font-size: 10px; color: #64748b; font-weight: 800;">PINNACLE FAIR</div><div style="color: #ffffff; font-weight: 900; font-size: 20px; padding: 4px 0;">{u.get('Fair Odds')}</div></div>
             </div>
+        </div>
+        <div style="text-align: right; align-self: center;">
+            <div style="color: #7dd3fc; font-size: 64px; font-weight: 900;">+{u.get('EV %')}%</div>
+            <div style="font-size: 11px; color: #64748b; font-weight: 800; letter-spacing: 2px;">EDGE</div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+</div>
+"""
 
-    # HERD
-    for b in sorted_bets[1:]:
-        b_side = b.get('Side', '')
-        b_theme = "under-theme" if "Under" in b_side else "over-theme"
-        st.markdown(f"""
-       <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-            <div>
-                <div style="font-size:24px; font-weight:900; line-height: 1.1;">
-                    {b.get('Player')} 
-                    <span class="strategy-badge {b_theme}" style="font-size:14px; margin-left:10px;">{b_side} {b.get('Market')}</span>
-                </div>
-                <div style="color: #475569; font-size: 14px; font-weight: 700; margin-top: 4px;">{b.get('Game')}</div>
-                <div style="margin-top: 12px; display: flex; gap: 15px;">
-                    <span style="color:#7dd3fc; font-weight:800;">Novig: {b.get('Target Odds')}</span>
-                    <span style="color:#475569; font-weight:700;">Fair: {b.get('Fair Odds')}</span>
-                </div>
+# HERD
+for b in sorted_bets[1:]:
+    b_side = b.get('Side', '')
+    b_theme = "under-theme" if "Under" in b_side else "over-theme"
+    cards_html += f"""
+    <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div>
+            <div style="font-size:24px; font-weight:900; line-height: 1.1;">
+                {b.get('Player')}
+                <span class="strategy-badge {b_theme}" style="font-size:14px; margin-left:10px;">{b_side} {b.get('Market')}</span>
             </div>
-            <div style="text-align:right;"><div style="color:#7dd3fc; font-size:38px; font-weight:900;">+{b.get('EV %')}%</div></div>
+            <div style="color: #475569; font-size: 14px; font-weight: 700; margin-top: 4px;">{b.get('Game')}</div>
+            <div style="margin-top: 12px; display: flex; gap: 15px;">
+                <span style="color:#7dd3fc; font-weight:800;">Novig: {b.get('Target Odds')}</span>
+                <span style="color:#475569; font-weight:700;">Fair: {b.get('Fair Odds')}</span>
+            </div>
         </div>
-        """, unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+        <div style="text-align:right;"><div style="color:#7dd3fc; font-size:38px; font-weight:900;">+{b.get('EV %')}%</div></div>
+    </div>
+    """
+
+st.markdown(f'<div style="max-width:1000px; margin:0 auto; padding:0 20px;">{cards_html}</div>', unsafe_allow_html=True)
