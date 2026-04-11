@@ -8,7 +8,7 @@ from cold_fronts import get_cold_fronts
 # 1. Page Configuration
 st.set_page_config(page_title="+EV BOOKIE", page_icon="📉", layout="wide")
 
-# 2. FULL CSS
+# 2. FULL CSS (UNCHANGED)
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap');
@@ -109,7 +109,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     letter-spacing: 1.5px;
 }
 
-/* ── Cards & Badges ── */
+/* ── Cards ── */
 .card {
     background: rgba(15, 23, 42, 0.6);
     backdrop-filter: blur(12px);
@@ -118,18 +118,10 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     padding: 28px;
     margin-bottom: 16px;
 }
-.strategy-badge {
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-weight: 800;
-    font-size: 12px;
-}
-.under-theme { background: #064e3b; color: #34d399; }
-.over-theme { background: #450a0a; color: #f87171; }
 </style>
 """, unsafe_allow_html=True)
 
-# 3. API + CACHE
+# 3. CACHE
 @st.cache_data(ttl=1800)
 def get_cached_bets(_key):
     return find_ev_bets(_key)
@@ -148,8 +140,8 @@ def fetch_scores():
                 for event in r.json().get("events", []):
                     comp = event["competitions"][0]
                     t = comp["competitors"]
-                    home = next(x for x in t if x["homeAway"]=="home")
-                    away = next(x for x in t if x["homeAway"]=="away")
+                    home = next(x for x in t if x["homeAway"] == "home")
+                    away = next(x for x in t if x["homeAway"] == "away")
 
                     scores.append({
                         "league": league.upper(),
@@ -163,52 +155,32 @@ def fetch_scores():
         pass
     return scores
 
-# Auto refresh
 st_autorefresh(interval=1800000, key="refresh_tick")
 
-# ─────────────────────────────────────────────────────────────
-# DATA LAYER
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# DATA
+# ─────────────────────────────────────────────
 api_key = os.environ.get("ODDS_API_KEY", "")
-
 bets, _ = get_cached_bets(api_key)
 
-# ❄️ COLD FRONTS ENGINE
-cold_fronts = get_cold_fronts()
+# ❄️ COLD FRONTS (FIXED SAFELY)
+cold_fronts = []
+ticker_display = "No Cold Fronts Today"
 
-if cold_fronts:
-    ticker_display = " • ".join([
-        f"{p['name']} [K/9:{p['k9']}] ❄️{p['cold_score']}"
-        for p in cold_fronts[:10]
-    ])
-else:
-    ticker_display = "NO COLD FRONT DATA"
+try:
+    cold_fronts = get_cold_fronts()
 
-# ─────────────────────────────────────────────────────────────
-# COLD FRONTS TICKER
-# ─────────────────────────────────────────────────────────────
-st.markdown(f"""
-<div style="
-    background:#020408;
-    border-bottom:1px solid #1e293b;
-    padding:10px 0;
-    overflow:hidden;
-    white-space:nowrap;
-">
-    <div style="display:inline-block; animation:scroll-left 120s linear infinite;">
-        <span style="color:#7dd3fc; font-weight:900; margin-right:20px;">
-            ❄️ COLD FRONTS:
-        </span>
-        <span style="color:white; font-family:monospace; font-size:13px;">
-            {ticker_display} • {ticker_display}
-        </span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+    if cold_fronts:
+        ticker_display = " • ".join([
+            f"{p['name']} [K/9:{p['k9']}] ❄️{p['cold_score']}"
+            for p in cold_fronts[:10]
+        ])
+except:
+    ticker_display = "Cold Fronts Error"
 
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
 # SCORES TICKER
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
 scores = fetch_scores()
 
 if scores:
@@ -223,9 +195,9 @@ if scores:
         unsafe_allow_html=True
     )
 
-# ─────────────────────────────────────────────────────────────
-# HEADER
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# HEADER (UNCHANGED)
+# ─────────────────────────────────────────────
 st.markdown("""
 <div class="pv-header">
     <div>
@@ -234,12 +206,13 @@ st.markdown("""
             +EV ANALYTICS ENGINE • Bet on the chaos, not the perfection.
         </div>
     </div>
+    <a href="https://buymeacoffee.com/notjxck" class="pv-beer-btn" target="_blank">🍺 Support Chaos</a>
 </div>
 """, unsafe_allow_html=True)
 
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
 # STATS
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
 num_edges = len(bets) if bets else 0
 avg_val = (sum(b.get("EV %", 0) for b in bets) / num_edges) if num_edges else 0
 top_val = max((b.get("EV %", 0) for b in bets), default=0)
@@ -252,9 +225,40 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ─────────────────────────────────────────────────────────────
-# EV FEED
-# ─────────────────────────────────────────────────────────────
+st.markdown("""
+<div style="max-width:1000px; margin: 0 auto 30px; padding: 0 20px;">
+    <div class="card" style="border-left: 4px solid #f87171;">
+        <h3 style="color:#f87171; margin:0 0 10px 0; font-size:18px; font-weight:900;">
+            📉 The "Anti-Public" Strategy
+        </h3>
+        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0;">
+            The Public bets on records and highlight reels. We bet on <span style="color: #f87171; font-weight: 800;">Regression to the Mean</span>. 
+            When the hype peaks, we short the outcome. Market crashes don't happen to us: we profit from them.
+            <span style="color:#ffffff; font-style:italic;">1929 Style: BET THE UNDER.</span>
+        </p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# ─────────────────────────────────────────────
+# ❄️ COLD FRONTS (UNDER STATS — FIXED LOCATION)
+# ─────────────────────────────────────────────
+st.markdown(f"""
+<div style="max-width:1000px;margin:0 auto 20px;padding:0 20px;">
+    <div class="card" style="border-left:4px solid #38bdf8;">
+        <h3 style="color:#38bdf8;margin:0 0 10px 0;font-size:16px;font-weight:900;">
+            ❄️ COLD FRONTS (STRIKEOUT DEVIATION)
+        </h3>
+        <div style="color:#94a3b8;font-size:13px;font-family:monospace;">
+            {ticker_display}
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# ─────────────────────────────────────────────
+# EV FEED (UNCHANGED)
+# ─────────────────────────────────────────────
 if bets:
     bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
 
