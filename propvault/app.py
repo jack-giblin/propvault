@@ -1,5 +1,4 @@
 import os
-import time
 import requests
 import streamlit as st
 import textwrap
@@ -7,9 +6,9 @@ from ev_engine import find_ev_bets
 from streamlit_autorefresh import st_autorefresh
 
 # 1. Page Configuration
-st.set_page_config(page_title="Entropy", page_icon="📉", layout="wide")
+st.set_page_config(page_title="Entropy Capital", page_icon="📉", layout="wide")
 
-# 2. CSS - Rebranded to Entropy
+# 2. FULL CSS (Keeping your exact specifications)
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap');
@@ -21,8 +20,6 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 }
 
 [data-testid="stHeader"] { background: transparent !important; }
-#MainMenu, footer, header { visibility: hidden; }
-[data-testid="stSidebar"], section[data-testid="stSidebar"] { display: none !important; }
 .block-container { padding: 0 !important; max-width: 100% !important; }
 
 /* ── Live scores ticker ── */
@@ -33,17 +30,14 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     overflow: hidden;
     white-space: nowrap;
 }
-
 .scores-track {
     display: inline-flex;
     animation: scroll-left 120s linear infinite;
 }
-
 @keyframes scroll-left {
     0% { transform:translateX(0); }
     100% { transform:translateX(-50%); }
 }
-
 .score-chip {
     display: inline-flex;
     align-items: center;
@@ -63,7 +57,6 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     margin: 40px auto 30px;
     padding: 0 20px;
 }
-
 .pv-logo-name {
     font-size: 42px;
     font-weight: 900;
@@ -72,7 +65,6 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     -webkit-text-fill-color: transparent;
     letter-spacing: -1.5px;
 }
-
 .pv-beer-btn {
     display: flex;
     align-items: center;
@@ -96,7 +88,6 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     margin: 0 auto 30px;
     padding: 0 20px;
 }
-
 .pv-stat {
     background: #0f172a;
     border: 1px solid #1e293b;
@@ -104,7 +95,6 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     padding: 22px;
     text-align: center;
 }
-
 .pv-stat-num {
     font-size: 38px;
     font-weight: 900;
@@ -112,7 +102,6 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     margin-bottom: 6px;
     color: #7dd3fc;
 }
-
 .pv-stat-lbl {
     font-size: 11px;
     text-transform: uppercase;
@@ -129,7 +118,6 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     padding: 28px;
     margin-bottom: 16px;
 }
-
 .strategy-badge {
     padding: 2px 8px;
     border-radius: 6px;
@@ -138,26 +126,10 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 }
 .under-theme { background: #064e3b; color: #34d399; }
 .over-theme { background: #450a0a; color: #f87171; }
-
-@media (max-width: 600px) {
-    .pv-header { flex-direction: column; gap: 12px; }
-    .pv-logo-name { font-size: 32px; }
-    .pv-stats { grid-template-columns: 1fr; gap: 10px; }
-    .pv-stat-num { font-size: 28px; }
-    .card { flex-direction: column; align-items: flex-start !important; gap: 12px; }
-}
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Data Management
-st_autorefresh(interval=60000, key="api_refresh") # Refresh every minute
-
-api_key = os.environ.get("ODDS_API_KEY", "")
-
-@st.cache_data(ttl=1800)
-def get_cached_bets(key):
-    return find_ev_bets(key)
-
+# 3. Logic: Scores & Bets
 @st.cache_data(ttl=300)
 def fetch_scores():
     scores = []
@@ -168,7 +140,8 @@ def fetch_scores():
                 for event in r.json().get("events", []):
                     comp = event["competitions"][0]
                     t = comp["competitors"]
-                    home, away = next(x for x in t if x["homeAway"]=="home"), next(x for x in t if x["homeAway"]=="away")
+                    home = next(x for x in t if x["homeAway"]=="home")
+                    away = next(x for x in t if x["homeAway"]=="away")
                     scores.append({
                         "league": league.upper(), 
                         "away": away["team"]["abbreviation"], 
@@ -180,23 +153,25 @@ def fetch_scores():
     except: pass
     return scores
 
-bets, errors = get_cached_bets(api_key)
+st_autorefresh(interval=30000, key="refresh")
+api_key = os.environ.get("ODDS_API_KEY", "")
+bets, _ = find_ev_bets(api_key)
 
 # ── RENDER ──
 
 # 1. Scores Ticker
 scores = fetch_scores()
 if scores:
-    chips = "".join([f'<span class="score-chip">{s["league"]} | {s["away"]} {s["a_score"]} · {s["home"]} {s["h_score"]} <span class="score-status">{s["status"]}</span></span>' for s in scores])
+    chips = "".join([f'<span class="score-chip">{s["league"]} | {s["away"]} {s["a_score"]} · {s["home"]} {s["h_score"]} <span style="color:#475569; margin-left:5px;">{s["status"]}</span></span>' for s in scores])
     st.markdown(f'<div class="scores-bar"><div class="scores-track">{chips * 3}</div></div>', unsafe_allow_html=True)
 
 # 2. Header
 st.markdown(f"""
 <div class="pv-header">
     <div>
-        <div class="pv-logo-name">Entropy</div>
+        <div class="pv-logo-name">Entropy Capital</div>
         <div style="color: #475569; font-size: 11px; font-weight: 800; letter-spacing: 1px;">
-            ANTI-PUBLIC BETTING ENGINE <span style="color: #7dd3fc; margin-left:10px;">• LIVE</span>
+            ASSET DEPRECIATION TERMINAL <span style="color: #f87171; margin-left:10px;">• MARKET SHORT</span>
         </div>
     </div>
     <a href="https://buymeacoffee.com/notjxck" class="pv-beer-btn" target="_blank"><span>🍺</span> Support Chaos</a>
@@ -222,7 +197,7 @@ st.markdown("""
     <div class="card" style="border-left: 4px solid #f87171;">
         <h3 style="color:#f87171; margin:0 0 10px 0; font-size:18px; font-weight:900;">📉 The "Anti-Public" Strategy</h3>
         <p style="color:#94a3b8; font-size:14px; line-height:1.7; margin:0;">
-            Data confirms: <span style="color: #f87171; font-weight: 800;">Overs return -2.26% ROI</span> while <span style="color: #34d399; font-weight: 800;">Unders return +3.33% ROI</span>.
+            Data confirms: <span style="color: #f87171; font-weight: 800;">Overs return -2.26% ROI</span> while <span style="color: #34d399; font-weight: 800;">Unders return +3.33% ROI</span>. 
             An Under wins if there is an injury, blowout, foul trouble, or just a bad night.
             <span style="color:#ffffff; font-style:italic;">Bet on the chaos, not the perfection.</span>
         </p>
@@ -230,60 +205,42 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# 5. Feed - THE NUCLEAR RE-SKIN
-if not bets:
-    st.markdown('<div style="text-align:center; padding:40px; color:#475569;">SYSTEM IDLE: NO DECAY DETECTED.</div>', unsafe_allow_html=True)
-else:
+# 5. Feed
+if bets:
     sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
-    cards_html = ""
-
+    html_blocks = []
     for i, b in enumerate(sorted_bets):
-        b_side = b.get('Side', '')
-        # Nuclear colors: Green for Under (Stable), Red for Over (Critical)
+        b_side, b_market = b.get('Side', ''), b.get('Market', '')
         b_theme = "under-theme" if "Under" in b_side else "over-theme"
-        l5_html = f'<div style="color:#00ff41; font-size:12px; font-weight:800; margin-bottom:8px;">{b.get("L5")}</div>' if b.get("L5") else ""
+        l5_val = f'<div style="color:#7dd3fc; font-size:12px; font-weight:800; margin-bottom:8px;">{b.get("L5")}</div>' if b.get("L5") else ""
         
-        if i == 0: # CRITICAL ANOMALY (Top Bet)
-            # We use textwrap.dedent to ensure Streamlit doesn't think this is a code block
-            raw_html = f"""
-            <div class="card" style="border: 2px solid #f87171; background: linear-gradient(145deg, rgba(248, 113, 113, 0.1) 0%, rgba(6, 9, 18, 0.5) 100%); margin-bottom: 40px; position: relative; overflow: hidden;">
-                <div style="position: absolute; right: -20px; top: -10px; font-size: 130px; opacity: 0.1; transform: rotate(15deg);">☢️</div>
-                <div style="display: flex; justify-content: space-between; position: relative; z-index: 1;">
+        if i == 0:
+            block = f"""
+            <div class="card" style="border: 1px solid #f87171; position: relative; overflow: hidden;">
+                <div style="position: absolute; right: -10px; top: -10px; font-size: 100px; opacity: 0.05;">📉</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index:1;">
                     <div>
-                        <div style="background: #f87171; color: #000; padding: 2px 10px; border-radius: 0px; font-size: 11px; font-weight: 900; display: inline-block; margin-bottom: 12px;">CRITICAL ANOMALY</div>
-                        <div style="font-size: 42px; font-weight: 900; line-height: 1; color: #fff;">{b.get('Player')}</div>
+                        <div class="strategy-badge under-theme" style="margin-bottom: 12px; display: inline-block;">HIGH CONVICTION SHORT 🐻</div>
+                        <div style="font-size: 42px; font-weight: 900; line-height: 1;">{b.get('Player')}</div>
                         <div style="color: #64748b; font-size: 16px; margin: 5px 0 10px 0;">{b.get('Game')}</div>
-                        {l5_html}
-                        <span class="strategy-badge {b_theme}" style="font-size: 18px; padding: 4px 12px; border-radius:0px;">{b_side} {b.get('Market')}</span>
-                        <div style="margin-top: 15px; display: flex; gap: 20px;">
-                             <div><div style="font-size: 10px; color: #00ff41;">NOVIG</div><div style="font-weight: 900; font-size: 20px;">{b.get('Target Odds')}</div></div>
-                             <div><div style="font-size: 10px; color: #64748b;">FAIR</div><div style="font-weight: 900; font-size: 20px;">{b.get('Fair Odds')}</div></div>
-                        </div>
+                        {l5_val}
+                        <span class="strategy-badge {b_theme}" style="font-size: 18px; padding: 6px 12px;">{b_side} {b_market}</span>
                     </div>
-                    <div style="text-align: right; align-self: center;">
-                        <div style="color: #f87171; font-size: 64px; font-weight: 900;">+{b.get('EV %')}%</div>
-                        <div style="font-size: 11px; color: #64748b; font-weight: 800; letter-spacing: 2px;">FAILURE_PROB</div>
+                    <div style="text-align: right;">
+                        <div style="color: #f87171; font-size: 64px; font-weight: 900;">-{b.get('EV %')}%</div>
+                        <div style="font-size: 11px; color: #475569; font-weight: 800;">EXP_DECAY</div>
                     </div>
                 </div>
-            </div>
-            """
-            cards_html += textwrap.dedent(raw_html)
-        else: # SYSTEM LOGS (Remaining Bets)
-            raw_html = f"""
-            <div class="card" style="display:flex; justify-content:space-between; align-items:center; border-radius:0px; border-left: 4px solid #00ff41;">
+            </div>"""
+        else:
+            block = f"""
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
-                    <div style="font-size:24px; font-weight:900; color:#fff;">{b.get('Player')} <span class="strategy-badge {b_theme}" style="font-size:14px; margin-left:10px; border-radius:0px;">{b_side} {b.get('Market')}</span></div>
+                    <div style="font-size:24px; font-weight:900;">{b.get('Player')} <span class="strategy-badge {b_theme}" style="margin-left:10px;">SHORT</span></div>
                     <div style="color: #475569; font-size: 14px;">{b.get('Game')}</div>
-                    {l5_html}
-                    <div style="margin-top: 8px; display: flex; gap: 15px; font-size:14px;">
-                        <span style="color:#00ff41; font-weight:800;">Novig: {b.get('Target Odds')}</span>
-                        <span style="color:#475569;">Fair: {b.get('Fair Odds')}</span>
-                    </div>
                 </div>
-                <div style="color:#00ff41; font-size:38px; font-weight:900;">+{b.get('EV %')}%</div>
-            </div>
-            """
-            cards_html += textwrap.dedent(raw_html)
-
-    # FINAL RENDER
-    st.markdown(f'<div style="max-width:1000px; margin:0 auto; padding:0 20px;">{cards_html}</div>', unsafe_allow_html=True)
+                <div style="color:#f87171; font-size:38px; font-weight:900;">-{b.get('EV %')}%</div>
+            </div>"""
+        html_blocks.append(textwrap.dedent(block))
+    
+    st.markdown(f'<div style="max-width:1000px; margin:0 auto; padding:0 20px;">{"".join(html_blocks)}</div>', unsafe_allow_html=True)
