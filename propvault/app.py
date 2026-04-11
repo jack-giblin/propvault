@@ -118,10 +118,8 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     padding: 28px;
     margin-bottom: 16px;
 }
-</style>
-""", unsafe_allow_html=True)
 
-@media (max-width: 768px) {
+@media (max-width:768px) {
     .pv-header {
         flex-direction: column;
         gap: 12px;
@@ -159,6 +157,9 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
         font-size: 12px !important;
     }
 }
+</style>
+""", unsafe_allow_html=True)
+
 
 # 3. CACHE
 @st.cache_data(ttl=1800)
