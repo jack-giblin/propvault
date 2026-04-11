@@ -257,7 +257,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # 6. Feed with Price Comparison
-if bets:
+if not bets:
+    st.markdown("""
+    <div class="card" style="text-align:center; padding:40px;">
+        <div style="font-size:26px; font-weight:900; color:#7dd3fc;">
+            No bets at this time
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+else:
     sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
     
     # UNICORN
