@@ -48,27 +48,13 @@ def is_upcoming(commence_time_str: str) -> bool:
 
 # ── L5 Stats Lookups ───────────────────────────────────────────────────
 
-def get_nba_l5(player_name: str, stat: str) -> str:
-    try:
-        search = requests.get("https://www.balldontlie.io/api/v1/players", params={"search": player_name, "per_page": 1}, timeout=8)
-        results = search.json().get("data", [])
-        if not results: return None
-        player_id = results[0]["id"]
-        logs = requests.get("https://www.balldontlie.io/api/v1/stats", params={"player_ids[]": player_id, "per_page": 5, "seasons[]": 2024}, timeout=8)
-        games = logs.json().get("data", [])
-        if not games: return None
-        values = [g.get(stat, 0) for g in games if g.get("min") and g["min"] != "00:00"]
-        if not values: return None
-        return f"{sum(values) / len(values):.1f}"
-    except: return None
-
 def get_mlb_l5_strikeouts(player_name: str) -> str:
     try:
         search = requests.get("https://statsapi.mlb.com/api/v1/people/search", params={"names": player_name, "sportId": 1}, timeout=8)
         people = search.json().get("people", [])
         if not people: return None
         player_id = people[0]["id"]
-        logs = requests.get(f"https://statsapi.mlb.com/api/v1/people/{player_id}/stats", params={"stats": "gameLog", "group": "pitching", "season": 2025, "limit": 5}, timeout=8)
+        logs = requests.get(f"https://statsapi.mlb.com/api/v1/people/{player_id}/stats", params={"stats": "gameLog", "group": "pitching", "season": 2026, "limit": 5}, timeout=8)
         splits = logs.json().get("stats", [{}])[0].get("splits", [])
         if not splits: return None
         ks = [s["stat"].get("strikeOuts", 0) for s in splits[:5]]
