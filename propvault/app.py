@@ -141,7 +141,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 """, unsafe_allow_html=True)
 
 # 3. Data Fetch Functions
-@st.cache_data(ttl=120)
+@st.cache_data(ttl=300)
 def fetch_scores():
     scores = []
     try:
@@ -167,16 +167,16 @@ api_key = os.environ.get("ODDS_API_KEY", "")
 def get_sync_timer():
     """Calculates seconds remaining until the next 15-minute interval."""
     now = time.time()
-    remaining = 900 - (now % 900)
+    remaining = 3600 - (now % 3600)
     m, s = divmod(int(remaining), 60)
     return m, s, now
 
 mins, secs, current_ts = get_sync_timer()
 
 # The seed changes only when we cross a 15-minute boundary (e.g., 12:15, 12:30)
-time_seed = int(current_ts // 900)
+time_seed = int(current_ts // 3600)
 
-@st.cache_data(ttl=900)
+@st.cache_data(ttl=3600)
 def get_cached_bets(api_key):
     from ev_engine import find_ev_bets
     bets, errors = find_ev_bets(api_key)
@@ -207,7 +207,7 @@ if scores:
 # 2. Timer Logic
 def get_sync_timer():
     now = time.time()
-    remaining = 900 - (now % 900)
+    remaining = 3600 - (now % 3600)
     m, s = divmod(int(remaining), 60)
     return m, s
 mins, secs = get_sync_timer()
