@@ -154,6 +154,7 @@ def fetch_scores():
     return scores
 
 st_autorefresh(interval=30000, key="refresh")
+# Railway will pull this from your Variables tab
 api_key = os.environ.get("ODDS_API_KEY", "")
 bets, _ = find_ev_bets(api_key)
 
@@ -205,13 +206,12 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# 5. The Feed (Zero-Indentation Injection)
+# 5. The Feed (Zero-Indentation Injection to stop code-dump)
 if bets:
     sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
     feed_html = []
     
     for i, b in enumerate(sorted_bets):
-        # We build the strings without ANY indentation to prevent Markdown code-block triggers
         b_side = b.get('Side', '')
         b_theme = "under-theme" if "Under" in b_side else "over-theme"
         l5 = f'<div style="color:#7dd3fc; font-size:12px; font-weight:800; margin-bottom:8px;">{b.get("L5")}</div>' if b.get("L5") else ""
@@ -234,6 +234,5 @@ if bets:
         
         feed_html.append(card)
 
-    # Wrap the entire collection and render in one go
     full_feed = f'<div style="max-width:1000px; margin:0 auto; padding:0 20px;">{"".join(feed_html)}</div>'
     st.markdown(full_feed, unsafe_allow_html=True)
