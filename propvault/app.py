@@ -153,10 +153,18 @@ def fetch_scores():
     except: pass
     return scores
 
-st_autorefresh(interval=30000, key="refresh")
-# Railway will pull this from your Variables tab
+@st.cache_data(ttl=1800)  # 1800 seconds = 30 minutes
+def get_cached_bets(_key):
+    # This function only executes once every 30 minutes per unique API key
+    return find_ev_bets(_key)
+
+# 2. Set the auto-refresh to 30 minutes
+# 1,800,000 ms = 30 minutes
+st_autorefresh(interval=1800000, key="refresh_tick")
+
+# 3. Pull the data
 api_key = os.environ.get("ODDS_API_KEY", "")
-bets, _ = find_ev_bets(api_key)
+bets, _ = get_cached_bets(api_key)
 
 # ── RENDER ──
 
