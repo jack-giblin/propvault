@@ -176,8 +176,8 @@ st.markdown(f"""
 <div class="pv-header">
     <div>
         <div class="pv-logo-name">Entropy Capital</div>
-        <div style="color: #cbd5e1; font-size: 11px; font-weight: 800; letter-spacing: 1px;">
-            ASSET DEPRECIATION TERMINAL <span style="color: #f87171; margin-left:10px;">• Bet on the chaos, not the perfection.</span>
+        <div style="color: #ffffff; font-size: 11px; font-weight: 800; letter-spacing: 1px;">
+            +EV ANALYTICS ENGINE <span style="color: #f87171; margin-left:10px;">• Bet on the chaos, not the perfection.</span>
         </div>
     </div>
     <a href="https://buymeacoffee.com/notjxck" class="pv-beer-btn" target="_blank"><span>🍺</span> Support Chaos</a>
@@ -191,9 +191,9 @@ top_val = max(b.get('EV %', 0) for b in bets) if num_edges > 0 else 0
 
 st.markdown(f"""
 <div class="pv-stats">
-    <div class="pv-stat"><div class="pv-stat-num">{num_edges}</div><div class="pv-stat-lbl">Open Shorts</div></div>
-    <div class="pv-stat"><div class="pv-stat-num">{avg_val:.1f}%</div><div class="pv-stat-lbl">Market Decay</div></div>
-    <div class="pv-stat"><div class="pv-stat-num">+{top_val:.1f}%</div><div class="pv-stat-lbl">Alpha Yield</div></div>
+    <div class="pv-stat"><div class="pv-stat-num">{num_edges}</div><div class="pv-stat-lbl">Live Edges</div></div>
+    <div class="pv-stat"><div class="pv-stat-num">{avg_val:.1f}%</div><div class="pv-stat-lbl">Avg +EV</div></div>
+    <div class="pv-stat"><div class="pv-stat-num">+{top_val:.1f}%</div><div class="pv-stat-lbl">Highest Edge</div></div>
 </div>
 """, unsafe_allow_html=True)
 
