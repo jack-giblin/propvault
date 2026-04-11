@@ -12,14 +12,13 @@ MIN_WIN_PROB = 0.40
 SHARP_BOOK = "pinnacle"
 TARGET_BOOK = "novig"
 
+# Only Under side is evaluated for prop markets
+UNDER_ONLY_MARKETS = {"pitcher_strikeouts", "player_assists"}
+
 SPORTS_MARKETS = {
-    "basketball_nba": [
-        "player_rebounds",
-        "player_assists",
-    ],
-    "baseball_mlb": [
-        "pitcher_strikeouts",
-    ],
+    "basketball_nba": ["totals", "player_assists"],
+    "baseball_mlb": ["totals", "pitcher_strikeouts"],
+    "icehockey_nhl": ["totals"],
 }
 
 # ── Math ───────────────────────────────────────────────────────────────
@@ -119,10 +118,7 @@ def get_mlb_l5_strikeouts(player_name: str) -> str:
 
 
 def get_player_l5(player_name: str, market_key: str) -> str:
-    if market_key == "player_rebounds":
-        val = get_nba_l5(player_name, "reb")
-        return f"L5 avg: {val} reb" if val else None
-    elif market_key == "player_assists":
+    if market_key == "player_assists":
         val = get_nba_l5(player_name, "ast")
         return f"L5 avg: {val} ast" if val else None
     elif market_key == "pitcher_strikeouts":
@@ -138,7 +134,6 @@ def find_ev_bets(api_key: str):
 
     for sport, prop_markets in SPORTS_MARKETS.items():
         try:
-            # Single bulk call per sport — replaces per-event calls
             r = requests.get(
                 f"{BASE_URL}/sports/{sport}/odds",
                 params={
@@ -179,16 +174,24 @@ def find_ev_bets(api_key: str):
                     continue
 
                 sharp_map = {
-                    (o["description"], o.get("point"), o["name"]): o
+                    (o.get("description"), o.get("point"), o["name"]): o
                     for o in sharp_market.get("outcomes", [])
                 }
                 target_map = {
-                    (o["description"], o.get("point"), o["name"]): o
+                    (o.get("description"), o.get("point"), o["name"]): o
                     for o in target_market.get("outcomes", [])
                 }
 
                 for (player, point, side), target_o in target_map.items():
-                    opp_side = "Under" if side == "Over" else "Over"
+                    # Under-only filter for prop markets
+                    if sharp_market["key"] in UNDER_ONLY_MARKETS and side != "Under":
+                        continue
+
+                    # For totals, only evaluate Unders
+                    if sharp_market["key"] == "totals" and side != "Under":
+                        continue
+
+                    opp_side = "Over"
                     key = (player, point, side)
                     opp_key = (player, point, opp_side)
 
@@ -198,8 +201,8 @@ def find_ev_bets(api_key: str):
                     sharp_price = sharp_map[key]["price"]
                     sharp_opp = sharp_map[opp_key]["price"]
 
-                    fair_over, fair_under = no_vig_prob(sharp_price, sharp_opp)
-                    fair_prob = fair_over if side == "Over" else fair_under
+                    fair_over, fair_under = no_vig_prob(sharp_opp, sharp_price)
+                    fair_prob = fair_under
 
                     if fair_prob < MIN_WIN_PROB:
                         continue
@@ -207,18 +210,24 @@ def find_ev_bets(api_key: str):
                     ev = (fair_prob * american_to_decimal(target_o["price"]) - 1) * 100
 
                     if MIN_EV <= ev <= MAX_EV_CAP:
-                        l5 = get_player_l5(player, sharp_market["key"])
+                        l5 = get_player_l5(player, sharp_market["key"]) if player else None
+                        market_label = (
+                            sharp_market["key"]
+                            .replace("player_", "")
+                            .replace("pitcher_", "")
+                            .replace("batter_", "")
+                            .replace("_", " ")
+                            .title()
+                        )
+                        game_label = f"{event.get('away_team')} @ {event.get('home_team')}"
+                        player_label = player if player else game_label
+
                         bets.append({
                             "Sport": sport.split("_")[1].upper(),
-                            "Game": f"{event.get('away_team')} @ {event.get('home_team')}",
-                            "Market": sharp_market["key"]
-                                .replace("player_", "")
-                                .replace("pitcher_", "")
-                                .replace("batter_", "")
-                                .replace("_", " ")
-                                .title(),
-                            "Player": player,
-                            "Side": f"{side} {point}",
+                            "Game": game_label,
+                            "Market": market_label,
+                            "Player": player_label,
+                            "Side": f"Under {point}",
                             "Target Odds": fmt_odds(target_o["price"]),
                             "Fair Odds": fmt_odds(sharp_price),
                             "Fair Prob": f"{fair_prob:.1%}",
