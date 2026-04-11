@@ -8,7 +8,7 @@ from streamlit_autorefresh import st_autorefresh
 # 1. Page Configuration
 st.set_page_config(page_title="Entropy Capital", page_icon="📉", layout="wide")
 
-# 2. FULL CSS (Keeping your exact specifications)
+# 2. FULL CSS
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap');
@@ -129,7 +129,11 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Logic: Scores & Bets
+# 3. API Logic with 30-Minute Credit Protection
+@st.cache_data(ttl=1800) # Only hits the API once every 30 minutes
+def get_cached_bets(_key):
+    return find_ev_bets(_key)
+
 @st.cache_data(ttl=300)
 def fetch_scores():
     scores = []
@@ -153,16 +157,9 @@ def fetch_scores():
     except: pass
     return scores
 
-@st.cache_data(ttl=1800)  # 1800 seconds = 30 minutes
-def get_cached_bets(_key):
-    # This function only executes once every 30 minutes per unique API key
-    return find_ev_bets(_key)
-
-# 2. Set the auto-refresh to 30 minutes
-# 1,800,000 ms = 30 minutes
+# Auto-refresh UI every 30 mins to match API cache
 st_autorefresh(interval=1800000, key="refresh_tick")
 
-# 3. Pull the data
 api_key = os.environ.get("ODDS_API_KEY", "")
 bets, _ = get_cached_bets(api_key)
 
@@ -180,7 +177,7 @@ st.markdown(f"""
     <div>
         <div class="pv-logo-name">Entropy Capital</div>
         <div style="color: #475569; font-size: 11px; font-weight: 800; letter-spacing: 1px;">
-            ASSET DEPRECIATION TERMINAL <span style="color: #f87171; margin-left:10px;">• MARKET SHORT</span>
+            ASSET DEPRECIATION TERMINAL <span style="color: #f87171; margin-left:10px;">• LIQUIDATING BULLS 🐂</span>
         </div>
     </div>
     <a href="https://buymeacoffee.com/notjxck" class="pv-beer-btn" target="_blank"><span>🍺</span> Support Chaos</a>
@@ -194,9 +191,9 @@ top_val = max(b.get('EV %', 0) for b in bets) if num_edges > 0 else 0
 
 st.markdown(f"""
 <div class="pv-stats">
-    <div class="pv-stat"><div class="pv-stat-num">{num_edges}</div><div class="pv-stat-lbl">Edges Found</div></div>
-    <div class="pv-stat"><div class="pv-stat-num">{avg_val:.1f}%</div><div class="pv-stat-lbl">Avg Value</div></div>
-    <div class="pv-stat"><div class="pv-stat-num">+{top_val:.1f}%</div><div class="pv-stat-lbl">Top Edge</div></div>
+    <div class="pv-stat"><div class="pv-stat-num">{num_edges}</div><div class="pv-stat-lbl">Open Shorts</div></div>
+    <div class="pv-stat"><div class="pv-stat-num">{avg_val:.1f}%</div><div class="pv-stat-lbl">Market Decay</div></div>
+    <div class="pv-stat"><div class="pv-stat-num">+{top_val:.1f}%</div><div class="pv-stat-lbl">Alpha Yield</div></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -206,7 +203,7 @@ st.markdown("""
     <div class="card" style="border-left: 4px solid #f87171;">
         <h3 style="color:#f87171; margin:0 0 10px 0; font-size:18px; font-weight:900;">📉 The "Anti-Public" Strategy</h3>
         <p style="color:#94a3b8; font-size:14px; line-height:1.7; margin:0;">
-            The Public bet on records and highlight reels. We bet on <span style="color: #f87171; font-weight: 800;">Regression to the Mean</span>. 
+            The Bulls 🐂 bet on records and highlight reels. We bet on <span style="color: #f87171; font-weight: 800;">Regression to the Mean</span>. 
             When the hype peaks, we short the outcome. Market crashes don't happen to us—we profit from them.
             <span style="color:#ffffff; font-style:italic;">1929 Style: BET THE UNDER.</span>
         </p>
@@ -214,7 +211,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# 5. The Feed (Zero-Indentation Injection to stop code-dump)
+# 5. The Feed (Restored L5 Stats & Zero-Indentation Protection)
 if bets:
     sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
     feed_html = []
@@ -222,25 +219,25 @@ if bets:
     for i, b in enumerate(sorted_bets):
         b_side = b.get('Side', '')
         b_theme = "under-theme" if "Under" in b_side else "over-theme"
-        l5 = f'<div style="color:#7dd3fc; font-size:12px; font-weight:800; margin-bottom:8px;">{b.get("L5")}</div>' if b.get("L5") else ""
+        # L5 Stats Restored Here
+        l5_val = f'<div style="color:#7dd3fc; font-size:12px; font-weight:800; margin: 8px 0;">L5 Average: {b.get("L5")}</div>' if b.get("L5") else ""
         
         if i == 0:
             card = f'<div class="card" style="border: 1px solid #f87171; position: relative; overflow: hidden;">' \
-                   f'<div style="position: absolute; right: -10px; top: -10px; font-size: 100px; opacity: 0.05;">📉</div>' \
+                   f'<div style="position: absolute; right: -10px; top: -10px; font-size: 100px; opacity: 0.05;">🐻</div>' \
                    f'<div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index:1;">' \
-                   f'<div><div class="strategy-badge under-theme" style="margin-bottom: 12px; display: inline-block;">HIGH CONVICTION SHORT 🐻</div>' \
+                   f'<div><div class="strategy-badge under-theme" style="margin-bottom: 12px; display: inline-block;">CRITICAL ANOMALY 📉</div>' \
                    f'<div style="font-size: 42px; font-weight: 900; line-height: 1;">{b.get("Player")}</div>' \
-                   f'<div style="color: #64748b; font-size: 16px; margin: 5px 0 10px 0;">{b.get("Game")}</div>' \
-                   f'{l5}<span class="strategy-badge {b_theme}" style="font-size: 18px; padding: 6px 12px;">{b_side} {b.get("Market")}</span></div>' \
+                   f'<div style="color: #64748b; font-size: 16px; margin: 5px 0;">{b.get("Game")}</div>' \
+                   f'{l5_val}<span class="strategy-badge {b_theme}" style="font-size: 18px; padding: 6px 12px;">SHORT {b.get("Market")}</span></div>' \
                    f'<div style="text-align: right;"><div style="color: #f87171; font-size: 64px; font-weight: 900;">-{b.get("EV %")}%</div>' \
-                   f'<div style="font-size: 11px; color: #475569; font-weight: 800;">EXP_DECAY</div></div></div></div>'
+                   f'<div style="font-size: 11px; color: #475569; font-weight: 800;">CRASH_PROB</div></div></div></div>'
         else:
             card = f'<div class="card" style="display:flex; justify-content:space-between; align-items:center;">' \
-                   f'<div><div style="font-size:24px; font-weight:900;">{b.get("Player")} <span class="strategy-badge {b_theme}" style="margin-left:10px;">SHORT</span></div>' \
-                   f'<div style="color: #475569; font-size: 14px;">{b.get("Game")}</div></div>' \
+                   f'<div><div style="font-size:24px; font-weight:900;">{b.get("Player")} <span class="strategy-badge {b_theme}" style="margin-left:10px;">SELL</span></div>' \
+                   f'<div style="color: #475569; font-size: 14px;">{b.get("Game")}</div>{l5_val}</div>' \
                    f'<div style="color:#f87171; font-size:38px; font-weight:900;">-{b.get("EV %")}%</div></div>'
         
         feed_html.append(card)
 
-    full_feed = f'<div style="max-width:1000px; margin:0 auto; padding:0 20px;">{"".join(feed_html)}</div>'
-    st.markdown(full_feed, unsafe_allow_html=True)
+    st.markdown(f'<div style="max-width:1000px; margin:0 auto; padding:0 20px;">{"".join(feed_html)}</div>', unsafe_allow_html=True)
