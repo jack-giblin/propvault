@@ -6,7 +6,7 @@ from ev_engine import find_ev_bets
 from streamlit_autorefresh import st_autorefresh
 
 # 1. Page Configuration
-st.set_page_config(page_title="Entropy Capital", page_icon="📉", layout="wide")
+st.set_page_config(page_title="+EV BOOKIE", page_icon="📉", layout="wide")
 
 # 2. FULL CSS
 st.markdown("""
@@ -175,7 +175,7 @@ if scores:
 st.markdown(f"""
 <div class="pv-header">
     <div>
-        <div class="pv-logo-name">Entropy Capital</div>
+        <div class="pv-logo-name">+EV BOOKIE</div>
         <div style="color: #ffffff; font-size: 11px; font-weight: 800; letter-spacing: 1px;">
             +EV ANALYTICS ENGINE <span style="color: #f87171; margin-left:10px;">• Bet on the chaos, not the perfection.</span>
         </div>
