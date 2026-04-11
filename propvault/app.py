@@ -202,7 +202,7 @@ st.markdown(f"""
     <div>
         <div class="pv-logo-name">PropVault</div>
         <div style="color: #475569; font-size: 11px; font-weight: 800; letter-spacing: 1px;">
-            NEXT REFRESH: <span style="color: #7dd3fc;">{mins:02d}:{secs:02d}</span>
+            NEW BETS: <span style="color: #7dd3fc;">{mins:02d}:{secs:02d}</span>
         </div>
     </div>
     <a href="https://buymeacoffee.com/jackgiblin" class="pv-beer-btn" target="_blank"><span>🍺</span> Buy me a beer</a>
