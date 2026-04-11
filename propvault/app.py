@@ -221,17 +221,17 @@ st.markdown("""
     <div class="card" style="border-left: 4px solid #f87171;">
         <h3 style="color:#f87171; margin:0 0 10px 0; font-size:18px; font-weight:900;">📉 The "Anti-Public" Strategy</h3>
         <p style="color:#94a3b8; font-size:14px; line-height:1.7; margin:0;">
-            Data confirms: <span style="color:#f87171; font-weight:800;">Overs return -2.26% ROI</span> while 
-            <span style="color:#34d399; font-weight:800;">Unders return +3.33% ROI</span>. 
-            An <span style="color:#ffffff; font-weight:700;">Over</span> requires flawless play. 
-            An <span style="color:#ffffff; font-weight:700;">Under</span> wins on injury, blowouts, or foul trouble. 
+            Data confirms: 
+            <span style="background-color: #450a0a; color: #f87171; padding: 2px 8px; border-radius: 6px; font-weight: 800; margin: 0 4px;">Overs return -2.26% ROI</span> 
+            while 
+            <span style="background-color: #064e3b; color: #34d399; padding: 2px 8px; border-radius: 6px; font-weight: 800; margin: 0 4px;">Unders return +3.33% ROI</span>.
+            An <span style="color:#ffffff; font-weight:700;">Over</span> almost always requires flawless play. 
+            An <span style="color:#ffffff; font-weight:700;">Under</span> wins if there is an injury, blowout, foul trouble, or just a bad night. 
             <span style="color:#ffffff; font-style:italic;">Bet on the chaos, not the perfection.</span>
         </p>
     </div>
 </div>
 """, unsafe_allow_html=True)
-
-st.markdown('<div style="max-width:1000px; margin: 0 auto; padding: 0 20px;">', unsafe_allow_html=True)
 
 # 6. Feed with Price Comparison
 if bets:
