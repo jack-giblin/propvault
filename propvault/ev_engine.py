@@ -12,7 +12,6 @@ MIN_WIN_PROB = 0.40
 SHARP_BOOK = "pinnacle"
 TARGET_BOOK = "novig"
 
-# Only Under side is evaluated for prop markets
 UNDER_ONLY_MARKETS = {"pitcher_strikeouts", "player_assists"}
 
 GAME_MARKETS = {
@@ -40,87 +39,41 @@ def no_vig_prob(a: float, b: float) -> Tuple[float, float]:
 def fmt_odds(o: float) -> str:
     return f"+{int(o)}" if o > 0 else str(int(o))
 
-# ── Helpers ────────────────────────────────────────────────────────────
-
 def is_upcoming(commence_time_str: str) -> bool:
     try:
         commence = datetime.fromisoformat(commence_time_str.replace("Z", "+00:00"))
         return commence > datetime.now(timezone.utc)
-    except Exception:
+    except:
         return False
 
 # ── L5 Stats Lookups ───────────────────────────────────────────────────
 
 def get_nba_l5(player_name: str, stat: str) -> str:
     try:
-        search = requests.get(
-            "https://www.balldontlie.io/api/v1/players",
-            params={"search": player_name, "per_page": 1},
-            timeout=8,
-        )
+        search = requests.get("https://www.balldontlie.io/api/v1/players", params={"search": player_name, "per_page": 1}, timeout=8)
         results = search.json().get("data", [])
-        if not results:
-            return None
+        if not results: return None
         player_id = results[0]["id"]
-
-        logs = requests.get(
-            "https://www.balldontlie.io/api/v1/stats",
-            params={
-                "player_ids[]": player_id,
-                "per_page": 5,
-                "seasons[]": 2024,
-            },
-            timeout=8,
-        )
+        logs = requests.get("https://www.balldontlie.io/api/v1/stats", params={"player_ids[]": player_id, "per_page": 5, "seasons[]": 2024}, timeout=8)
         games = logs.json().get("data", [])
-        if not games:
-            return None
-
+        if not games: return None
         values = [g.get(stat, 0) for g in games if g.get("min") and g["min"] != "00:00"]
-        if not values:
-            return None
-
-        avg = sum(values) / len(values)
-        return f"{avg:.1f}"
-    except Exception:
-        return None
-
+        if not values: return None
+        return f"{sum(values) / len(values):.1f}"
+    except: return None
 
 def get_mlb_l5_strikeouts(player_name: str) -> str:
     try:
-        search = requests.get(
-            "https://statsapi.mlb.com/api/v1/people/search",
-            params={"names": player_name, "sportId": 1},
-            timeout=8,
-        )
+        search = requests.get("https://statsapi.mlb.com/api/v1/people/search", params={"names": player_name, "sportId": 1}, timeout=8)
         people = search.json().get("people", [])
-        if not people:
-            return None
+        if not people: return None
         player_id = people[0]["id"]
-
-        logs = requests.get(
-            f"https://statsapi.mlb.com/api/v1/people/{player_id}/stats",
-            params={
-                "stats": "gameLog",
-                "group": "pitching",
-                "season": 2025,
-                "limit": 5,
-            },
-            timeout=8,
-        )
+        logs = requests.get(f"https://statsapi.mlb.com/api/v1/people/{player_id}/stats", params={"stats": "gameLog", "group": "pitching", "season": 2025, "limit": 5}, timeout=8)
         splits = logs.json().get("stats", [{}])[0].get("splits", [])
-        if not splits:
-            return None
-
+        if not splits: return None
         ks = [s["stat"].get("strikeOuts", 0) for s in splits[:5]]
-        if not ks:
-            return None
-
-        avg = sum(ks) / len(ks)
-        return f"{avg:.1f}"
-    except Exception:
-        return None
-
+        return f"{sum(ks) / len(ks):.1f}" if ks else None
+    except: return None
 
 def get_player_l5(player_name: str, market_key: str) -> str:
     if market_key == "player_assists":
@@ -131,73 +84,13 @@ def get_player_l5(player_name: str, market_key: str) -> str:
         return f"L5 avg: {val} K" if val else None
     return None
 
-# ── Core Engine ────────────────────────────────────────────────────────
-
-def find_ev_bets(api_key: str):
-    bets = []
-    errors = []
-
-    # 1. HANDLE TOTALS (Bulk fetching works here)
-    for sport, markets in GAME_MARKETS.items():
-        try:
-            r = requests.get(
-                f"{BASE_URL}/sports/{sport}/odds",
-                params={
-                    "apiKey": api_key,
-                    "regions": "us,eu",
-                    "markets": ",".join(markets),
-                    "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}",
-                    "oddsFormat": "american",
-                },
-                timeout=15,
-            )
-            r.raise_for_status()
-            events = r.json()
-            # Process these bulk events
-            process_logic(events, sport, bets)
-
-        except Exception as e:
-            errors.append(f"{sport} totals fetch error: {str(e)}")
-
-    # 2. HANDLE PLAYER PROPS (Must fetch per event ID to avoid 422)
-    for sport, markets in PROP_MARKETS.items():
-        try:
-            # First, get the list of game IDs for this sport
-            e_req = requests.get(f"{BASE_URL}/sports/{sport}/events", params={"apiKey": api_key})
-            e_req.raise_for_status()
-            event_list = e_req.json()
-
-            for event_info in event_list:
-                event_id = event_info['id']
-                
-                # Fetch props for this specific game
-                r = requests.get(
-                    f"{BASE_URL}/sports/{sport}/events/{event_id}/odds",
-                    params={
-                        "apiKey": api_key,
-                        "regions": "us,eu",
-                        "markets": ",".join(markets),
-                        "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}",
-                        "oddsFormat": "american",
-                    },
-                    timeout=10,
-                )
-                if r.status_code == 200:
-                    # Event endpoint returns a single dict, so we wrap it in a list
-                    process_logic([r.json()], sport, bets)
-                
-        except Exception as e:
-            errors.append(f"{sport} props fetch error: {str(e)}")
-
-    bets.sort(key=lambda x: x["EV %"], reverse=True)
-    return bets, errors
+# ── Processing Helper ──────────────────────────────────────────────────
 
 def process_logic(events, sport, bets):
-    """ This contains your original matching and EV calculation logic """
     for event in events:
         if not is_upcoming(event.get("commence_time", "")):
             continue
-
+        
         books = {b["key"]: b for b in event.get("bookmakers", [])}
         if SHARP_BOOK not in books or TARGET_BOOK not in books:
             continue
@@ -206,37 +99,28 @@ def process_logic(events, sport, bets):
         target_book = books[TARGET_BOOK]
 
         for sharp_market in sharp_book.get("markets", []):
-            target_market = next(
-                (m for m in target_book.get("markets", []) if m["key"] == sharp_market["key"]),
-                None
-            )
+            target_market = next((m for m in target_book.get("markets", []) if m["key"] == sharp_market["key"]), None)
             if not target_market: continue
 
             sharp_map = {(o.get("description"), o.get("point"), o["name"]): o for o in sharp_market.get("outcomes", [])}
             target_map = {(o.get("description"), o.get("point"), o["name"]): o for o in target_market.get("outcomes", [])}
 
             for (player, point, side), target_o in target_map.items():
-                # Under-only filter
                 if (sharp_market["key"] in UNDER_ONLY_MARKETS or sharp_market["key"] == "totals") and side != "Under":
                     continue
 
                 opp_side = "Over"
                 key, opp_key = (player, point, side), (player, point, opp_side)
-
-                if key not in sharp_map or opp_key not in sharp_map:
-                    continue
+                if key not in sharp_map or opp_key not in sharp_map: continue
 
                 sharp_price, sharp_opp = sharp_map[key]["price"], sharp_map[opp_key]["price"]
                 _, fair_prob = no_vig_prob(sharp_opp, sharp_price)
-
                 if fair_prob < MIN_WIN_PROB: continue
 
                 ev = (fair_prob * american_to_decimal(target_o["price"]) - 1) * 100
-
                 if MIN_EV <= ev <= MAX_EV_CAP:
                     l5 = get_player_l5(player, sharp_market["key"]) if player else None
                     market_label = sharp_market["key"].replace("player_", "").replace("pitcher_", "").replace("_", " ").title()
-                    
                     bets.append({
                         "Sport": sport.split("_")[1].upper(),
                         "Game": f"{event.get('away_team')} @ {event.get('home_team')}",
@@ -250,9 +134,41 @@ def process_logic(events, sport, bets):
                         "L5": l5,
                     })
 
+# ── Core Engine ────────────────────────────────────────────────────────
+
+def find_ev_bets(api_key: str):
+    bets = []
+    errors = []
+
+    # 1. TOTALS LOOP
+    for sport, markets in GAME_MARKETS.items():
+        try:
+            r = requests.get(f"{BASE_URL}/sports/{sport}/odds", params={
+                "apiKey": api_key, "regions": "us,eu", "markets": ",".join(markets),
+                "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}", "oddsFormat": "american"
+            }, timeout=15)
+            r.raise_for_status()
+            process_logic(r.json(), sport, bets)
         except Exception as e:
-            errors.append(f"{sport} fetch error: {str(e)}")
-            continue
+            errors.append(f"{sport} totals error: {str(e)}")
+
+    # 2. PROPS LOOP
+    for sport, markets in PROP_MARKETS.items():
+        try:
+            e_req = requests.get(f"{BASE_URL}/sports/{sport}/events", params={"apiKey": api_key}, timeout=10)
+            e_req.raise_for_status()
+            for event_info in e_req.json():
+                try:
+                    r = requests.get(f"{BASE_URL}/sports/{sport}/events/{event_info['id']}/odds", params={
+                        "apiKey": api_key, "regions": "us,eu", "markets": ",".join(markets),
+                        "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}", "oddsFormat": "american"
+                    }, timeout=10)
+                    if r.status_code == 200:
+                        process_logic([r.json()], sport, bets)
+                except:
+                    continue
+        except Exception as e:
+            errors.append(f"{sport} props error: {str(e)}")
 
     bets.sort(key=lambda x: x["EV %"], reverse=True)
     return bets, errors
