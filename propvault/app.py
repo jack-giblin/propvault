@@ -156,47 +156,34 @@ def fetch_scores():
     except: pass
     return scores
 
-# 4. Data Management & Global Sync
-st_autorefresh(interval=15 * 60 * 1000, key="unicorn_heartbeat")
-st_autorefresh(interval=1000, key="timer_heartbeat")
+# ── 4. DATA MANAGEMENT & SYNC ──
+
+# This stays at the top of the block to ensure the clock ticks
+from streamlit_autorefresh import st_autorefresh
+st_autorefresh(interval=1000, key="countdown_tick")
 
 api_key = os.environ.get("ODDS_API_KEY", "")
-TIMESTAMP_FILE = "last_refresh.txt"
 
-def get_global_expiry():
-    """Reads or creates a global expiry time that persists across all refreshes."""
+def get_sync_timer():
+    """Calculates seconds remaining until the next 15-minute interval."""
     now = time.time()
-    if not os.path.exists(TIMESTAMP_FILE):
-        expiry = round(now + 900)
-        with open(TIMESTAMP_FILE, "w") as f:
-            f.write(str(expiry))
-        return expiry
-    
-    with open(TIMESTAMP_FILE, "r") as f:
-        expiry = float(f.read())
-    
-    # If the global time has already passed, reset the file for the next 15 mins
-    if now > expiry:
-        expiry = now + 900
-        with open(TIMESTAMP_FILE, "w") as f:
-            f.write(str(expiry))
-            
-    return expiry
+    remaining = 900 - (now % 900)
+    m, s = divmod(int(remaining), 60)
+    return m, s, now
 
-# Get the ONE expiry time that everyone shares
-global_expiry = get_global_expiry()
+mins, secs, current_ts = get_sync_timer()
 
-@st.cache_data(ttl=900) 
-def get_cached_bets(api_key):
-    # This only runs when the 15-minute TTL expires
+# The seed changes only when we cross a 15-minute boundary (e.g., 12:15, 12:30)
+time_seed = int(current_ts // 900)
+
+@st.cache_data(ttl=900)
+def get_cached_bets(api_key, seed):
+    # This runs the engine ONLY when the seed changes or cache expires
+    from ev_engine import find_ev_bets
     bets, errors = find_ev_bets(api_key)
     return bets if bets else []
 
-bets = get_cached_bets(api_key)
-
-# --- 2. TIMER CALCULATION (Using only the Global File) ---
-remaining = max(0, int(global_expiry - time.time()))
-mins, secs = divmod(remaining, 60)
+bets = get_cached_bets(api_key, time_seed)
 
 # ── RENDER ──
 
