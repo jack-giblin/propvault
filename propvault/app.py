@@ -183,7 +183,7 @@ def fetch_scores():
     return scores
 
 # ── 4. DATA MANAGEMENT & SYNC ──
-st_autorefresh(interval=5000, key="countdown_tick")
+st_autorefresh(interval=30000, key="countdown_tick")
 
 api_key = os.environ.get("ODDS_API_KEY", "")
 
