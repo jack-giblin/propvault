@@ -235,7 +235,7 @@ st.markdown(f"""
         </div>
     </div>
     <a href="https://buymeacoffee.com/notjxck" class="pv-beer-btn" target="_blank">
-        <span>🍺</span> Support Chaos
+        <span>🍺</span> Support The Servers
     </a>
 </div>
 """, unsafe_allow_html=True)
@@ -247,7 +247,7 @@ top_val = max([b.get('EV %', 0) for b in bets], default=0)
 
 st.markdown(f"""
 <div class="pv-stats">
-    <div class="pv-stat"><div class="pv-stat-num">{num_edges}</div><div class="pv-stat-lbl">Live Edges</div></div>
+    <div class="pv-stat"><div class="pv-stat-num">{num_edges}</div><div class="pv-stat-lbl">Edges Found</div></div>
     <div class="pv-stat"><div class="pv-stat-num">{avg_val:.1f}%</div><div class="pv-stat-lbl">Avg +EV</div></div>
     <div class="pv-stat"><div class="pv-stat-num">+{top_val:.1f}%</div><div class="pv-stat-lbl">Highest Edge</div></div>
 </div>
