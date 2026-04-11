@@ -137,16 +137,6 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 }
 .under-theme { background: #064e3b; color: #34d399; }
 .over-theme { background: #450a0a; color: #f87171; }
-
-.odds-badge {
-    background: #052e16;
-    color: #4ade80;
-    border: 1px solid #064e3b;
-    padding: 6px 14px;
-    border-radius: 10px;
-    font-weight: 900;
-    font-size: 18px;
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -167,41 +157,26 @@ def fetch_scores():
     return scores
 
 # 4. Data Management & Refresh
-api_key = os.environ.get("ODDS_API_KEY", "")
+# Heartbeat for Data (15 mins)
 st_autorefresh(interval=15 * 60 * 1000, key="unicorn_heartbeat")
+# Heartbeat for Clock (1 sec)
+st_autorefresh(interval=1000, key="timer_heartbeat")
+
+api_key = os.environ.get("ODDS_API_KEY", "")
 
 @st.cache_data(ttl=900) 
 def get_cached_ev_data(api_key):
-    # This calls your engine
     bets, errors = find_ev_bets(api_key)
     return bets if bets else []
 
-# Load bets
 bets = get_cached_ev_data(api_key)
 
-# EMERGENCY OVERRIDE: If API is dead, show a fake unicorn to check the UI
+# EMERGENCY OVERRIDE
 if not bets:
-    bets = [{
-        "Player": "Luka Doncic",
-        "Side": "Over 9.5 Rebounds",
-        "Market": "Player Rebounds",
-        "Game": "DAL vs BOS",
-        "EV %": 12.8,
-        "Target Odds": "+115",
-        "Fair Odds": "-105",
-        "Sport": "NBA"
-    },
-    {
-        "Player": "Shohei Ohtani",
-        "Side": "Over 1.5 Total Bases",
-        "Market": "Total Bases",
-        "Game": "LAD vs CHC",
-        "EV %": 8.4,
-        "Target Odds": "-110",
-        "Fair Odds": "-125",
-        "Sport": "MLB"
-    }]
-
+    bets = [
+        {"Player": "Luka Doncic", "Side": "Over 9.5 Rebounds", "Market": "Player Rebounds", "Game": "DAL vs BOS", "EV %": 12.8, "Target Odds": "+115", "Fair Odds": "-105", "Sport": "NBA"},
+        {"Player": "Shohei Ohtani", "Side": "Over 1.5 Total Bases", "Market": "Total Bases", "Game": "LAD vs CHC", "EV %": 8.4, "Target Odds": "-110", "Fair Odds": "-125", "Sport": "MLB"}
+    ]
 
 # ── RENDER ──
 
@@ -211,12 +186,17 @@ if scores:
     chips = "".join([f'<span class="score-chip">{s["league"]} | {s["away"]} {s["a_score"]} · {s["home"]} {s["h_score"]} <span class="score-status">{s["status"]}</span></span>' for s in scores])
     st.markdown(f'<div class="scores-bar"><div class="scores-track">{chips * 3}</div></div>', unsafe_allow_html=True)
 
-# 2. Brand Header & Timer
+# 2. Timer Logic
 if 'last_refresh' not in st.session_state:
     st.session_state.last_refresh = time.time()
-remaining = max(0, int(900 - (time.time() - st.session_state.last_refresh)))
+elapsed = time.time() - st.session_state.last_refresh
+remaining = max(0, int(900 - elapsed))
+if remaining <= 0:
+    st.session_state.last_refresh = time.time()
+    remaining = 900
 mins, secs = divmod(remaining, 60)
 
+# 3. Header
 st.markdown(f"""
 <div class="pv-header">
     <div>
@@ -225,14 +205,12 @@ st.markdown(f"""
             NEXT REFRESH: <span style="color: #7dd3fc;">{mins:02d}:{secs:02d}</span>
         </div>
     </div>
-    <a href="https://buymeacoffee.com/jackgiblin" class="pv-beer-btn" target="_blank">
-        <span>🍺</span> Buy me a beer
-    </a>
+    <a href="https://buymeacoffee.com/jackgiblin" class="pv-beer-btn" target="_blank"><span>🍺</span> Buy me a beer</a>
 </div>
 """, unsafe_allow_html=True)
 
-# 3. Stats Row
-num_edges = len(bets) if bets else 0
+# 4. Stats Row
+num_edges = len(bets)
 avg_val = (sum(b.get('EV %', 0) for b in bets) / num_edges) if num_edges > 0 else 0
 top_val = max(b.get('EV %', 0) for b in bets) if num_edges > 0 else 0
 
@@ -244,17 +222,14 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# 4. Anti-Public Strategy Guide (NOW PLACED DIRECTLY UNDER STATS)
+# 5. Strategy Guide
 st.markdown("""
 <div style="max-width:1000px; margin: 0 auto 30px; padding: 0 20px;">
     <div class="card" style="border-left: 4px solid #ef4444;">
         <h3 style="color:#ef4444; margin:0 0 10px 0; font-size:18px; font-weight:900;">📉 The "Anti-Public" Strategy</h3>
         <p style="color:#94a3b8; font-size:14px; line-height:1.7; margin:0;">
-            Data confirms: <span class="under-theme" style="padding:2px 6px; border-radius:4px; color:#34d399; font-weight:800;">Overs return -2.26% ROI</span> while 
-            <span class="under-theme" style="padding:2px 6px; border-radius:4px; color:#34d399; font-weight:800;">Unders return +3.33% ROI</span>.
-            An <span style="color:#ffffff; font-weight:700;">Over</span> almost always requires flawless play. 
-            An <span style="color:#ffffff; font-weight:700;">Under</span> wins if there is an injury, blowout, foul trouble, or just a bad night. 
-            <span style="color:#ffffff; font-style:italic;">Bet on the chaos, not the perfection.</span>
+            Data confirms: <span style="color:#34d399; font-weight:800;">Overs return -2.26% ROI</span> while 
+            <span style="color:#34d399; font-weight:800;">Unders return +3.33% ROI</span>. Bet on the chaos.
         </p>
     </div>
 </div>
@@ -262,28 +237,28 @@ st.markdown("""
 
 st.markdown('<div style="max-width:1000px; margin: 0 auto; padding: 0 20px;">', unsafe_allow_html=True)
 
-# 5. Main Feed
+# 6. Feed with Price Comparison
 if bets:
     sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
+    
+    # UNICORN
     u = sorted_bets[0]
     u_side = u.get('Side', '')
     u_theme = "under-theme" if "Under" in u_side else "over-theme"
-    
-    # THE LONE UNICORN
     st.markdown(f"""
     <div class="card" style="border: 2px solid #7dd3fc; background: linear-gradient(145deg, rgba(125, 211, 252, 0.1) 0%, rgba(6, 9, 18, 0.5) 100%); margin-bottom: 40px; position: relative; overflow: hidden;">
         <div style="position: absolute; right: -20px; top: -10px; font-size: 130px; opacity: 0.1; transform: rotate(15deg);">🦄</div>
         <div style="display: flex; justify-content: space-between; position: relative; z-index: 1;">
             <div>
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                    <span style="font-size: 20px;">🦄</span>
                     <span style="background: #7dd3fc; color: #060912; padding: 2px 10px; border-radius: 100px; font-size: 11px; font-weight: 900;">THE LONE UNICORN</span>
                 </div>
                 <div style="font-size: 42px; font-weight: 900;">{u.get('Player')}</div>
-                <div style="margin-top: 10px;">
-                    <span class="strategy-badge {u_theme}" style="font-size: 20px; padding: 6px 15px;">{u_side}</span>
+                <span class="strategy-badge {u_theme}" style="font-size: 20px; padding: 6px 15px; display: inline-block; margin: 10px 0;">{u_side}</span>
+                <div style="margin-top: 15px; display: flex; gap: 20px;">
+                    <div><div style="font-size: 10px; color: #7dd3fc; font-weight: 800;">NOVIG</div><div style="background: #7dd3fc; color: #060912; padding: 4px 12px; border-radius: 8px; font-weight: 900; font-size: 20px;">{u.get('Target Odds')}</div></div>
+                    <div><div style="font-size: 10px; color: #64748b; font-weight: 800;">PINNACLE FAIR</div><div style="color: #ffffff; font-weight: 900; font-size: 20px; padding: 4px 0;">{u.get('Fair Odds')}</div></div>
                 </div>
-                <div style="color: #64748b; font-size: 15px; margin-top: 10px;">{u.get('Market')} · {u.get('Game')}</div>
             </div>
             <div style="text-align: right; align-self: center;">
                 <div style="color: #7dd3fc; font-size: 64px; font-weight: 900;">+{u.get('EV %')}%</div>
@@ -293,26 +268,21 @@ if bets:
     </div>
     """, unsafe_allow_html=True)
 
-    # THE HERD
+    # HERD
     for b in sorted_bets[1:]:
         b_side = b.get('Side', '')
         b_theme = "under-theme" if "Under" in b_side else "over-theme"
         st.markdown(f"""
         <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
             <div>
-                <div style="color:#64748b; font-size:10px; font-weight:900;">{b.get('Sport', '').upper()} · {b.get('Market', '').upper()}</div>
-                <div style="font-size:24px; font-weight:900;">{b.get('Player')}</div>
-                <div style="margin-top: 5px;">
-                    <span class="strategy-badge {b_theme}" style="font-size: 16px; padding: 4px 12px;">{b_side}</span>
+                <div style="font-size:24px; font-weight:900;">{b.get('Player')} <span class="strategy-badge {b_theme}" style="font-size:14px; margin-left:10px;">{b_side}</span></div>
+                <div style="margin-top: 8px; display: flex; gap: 15px;">
+                    <span style="color:#7dd3fc; font-weight:800;">Novig: {b.get('Target Odds')}</span>
+                    <span style="color:#475569; font-weight:700;">Fair: {b.get('Fair Odds')}</span>
                 </div>
             </div>
-            <div style="text-align:right;">
-                <div style="color:#7dd3fc; font-size:38px; font-weight:900;">+{b.get('EV %')}%</div>
-                <div style="color:#475569; font-size:12px;">Odds: {b.get('Target Odds')}</div>
-            </div>
+            <div style="text-align:right;"><div style="color:#7dd3fc; font-size:38px; font-weight:900;">+{b.get('EV %')}%</div></div>
         </div>
         """, unsafe_allow_html=True)
-else:
-    st.markdown('<div style="text-align:center; padding:100px 0; color:#334155; font-size:18px; font-weight:700;">🦄 Hunting for unicorns...</div>', unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
