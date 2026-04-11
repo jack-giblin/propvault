@@ -294,7 +294,7 @@ if not bets:
 else:
     sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
 
-    cards_html = ""
+cards_html = ""
 # UNICORN
 u = sorted_bets[0]
 u_side = u.get('Side', '')
@@ -325,7 +325,6 @@ cards_html += f"""
     </div>
 </div>
 """
-
 # HERD
 for b in sorted_bets[1:]:
     b_side = b.get('Side', '')
@@ -346,5 +345,4 @@ for b in sorted_bets[1:]:
         <div style="text-align:right;"><div style="color:#7dd3fc; font-size:38px; font-weight:900;">+{b.get('EV %')}%</div></div>
     </div>
     """
-
 st.markdown(f'<div style="max-width:1000px; margin:0 auto; padding:0 20px;">{cards_html}</div>', unsafe_allow_html=True)
