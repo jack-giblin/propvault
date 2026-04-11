@@ -294,13 +294,13 @@ if not bets:
 else:
     sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
 
-cards_html = ""
+    cards_html = ""
 # UNICORN
-u = sorted_bets[0]
-u_side = u.get('Side', '')
-u_theme = "under-theme" if "Under" in u_side else "over-theme"
+    u = sorted_bets[0]
+    u_side = u.get('Side', '')
+    u_theme = "under-theme" if "Under" in u_side else "over-theme"
 
-cards_html += f"""
+    cards_html += f"""
 <div class="card" style="border: 2px solid #7dd3fc; background: linear-gradient(145deg, rgba(125, 211, 252, 0.1) 0%, rgba(6, 9, 18, 0.5) 100%); margin-bottom: 40px; position: relative; overflow: hidden;">
     <div style="position: absolute; right: -20px; top: -10px; font-size: 130px; opacity: 0.1; transform: rotate(15deg);">🦄</div>
     <div style="display: flex; justify-content: space-between; position: relative; z-index: 1; flex-wrap: wrap; gap: 16px;">
