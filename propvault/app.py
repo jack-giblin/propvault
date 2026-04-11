@@ -210,6 +210,13 @@ elif st.session_state.last_good_bets:
 else:
     bets = []
 
+if not bets:
+    bets = [
+        {"Sport": "NBA", "Game": "Boston Celtics @ New York Knicks", "Market": "Rebounds", "Player": "Karl-Anthony Towns", "Side": "Under 8.5", "Target Odds": "+118", "Fair Odds": "-105", "Fair Prob": "51.2%", "EV %": 14.92},
+        {"Sport": "NBA", "Game": "Boston Celtics @ New York Knicks", "Market": "Points", "Player": "Jayson Tatum", "Side": "Under 26.5", "Target Odds": "+104", "Fair Odds": "-102", "Fair Prob": "54.1%", "EV %": 9.57},
+        {"Sport": "MLB", "Game": "Chicago Cubs @ St. Louis Cardinals", "Market": "Strikeouts", "Player": "Paul Skenes", "Side": "Over 7.5", "Target Odds": "+112", "Fair Odds": "+105", "Fair Prob": "48.8%", "EV %": 6.23},
+    ]
+
 m, s = divmod(int(remaining), 60)
 mins, secs = m, s
 # ── RENDER ──
@@ -295,7 +302,7 @@ else:
     st.markdown(f"""
     <div class="card" style="border: 2px solid #7dd3fc; background: linear-gradient(145deg, rgba(125, 211, 252, 0.1) 0%, rgba(6, 9, 18, 0.5) 100%); margin-bottom: 40px; position: relative; overflow: hidden;">
         <div style="position: absolute; right: -20px; top: -10px; font-size: 130px; opacity: 0.1; transform: rotate(15deg);">🦄</div>
-        <div style="display: flex; justify-content: space-between; position: relative; z-index: 1;">
+        <div style="display: flex; justify-content: space-between; position: relative; z-index: 1; flex-wrap: wrap; gap: 16px;">
             <div>
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                     <span style="background: #7dd3fc; color: #060912; padding: 2px 10px; border-radius: 100px; font-size: 11px; font-weight: 900;">THE LONE UNICORN</span>
@@ -323,7 +330,7 @@ else:
         b_side = b.get('Side', '')
         b_theme = "under-theme" if "Under" in b_side else "over-theme"
         st.markdown(f"""
-        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+       <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
             <div>
                 <div style="font-size:24px; font-weight:900; line-height: 1.1;">
                     {b.get('Player')} 
