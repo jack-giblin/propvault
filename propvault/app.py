@@ -225,8 +225,8 @@ def fetch_scores():
 # 4. EV Data Management
 api_key = os.environ.get("ODDS_API_KEY", "")
 
-# This forces the app to refresh itself every 15 minutes (900,000 milliseconds)
-st_autorefresh(interval=900 * 1000, key="api_heartbeat")
+# This forces the app to refresh every 15 minutes
+st_autorefresh(interval=15 * 60 * 1000, key="unicorn_heartbeat")
 
 @st.cache_data(ttl=900) 
 def get_cached_ev_data(api_key):
@@ -234,96 +234,76 @@ def get_cached_ev_data(api_key):
     bets, errors = find_ev_bets(api_key)
     return bets
 
-# Every time the app "heartbeats", it runs this line:
-st.session_state.bets = get_cached_ev_data(api_key)
+# Every time the app heartbeats, it checks the vault
+bets = get_cached_ev_data(api_key)
 
+# ── RENDER ──
 # ── RENDER ──
 scores = fetch_scores()
 
+# (Keep your existing scores ticker code here...)
 if scores:
-    chips = "".join([
-        f'<span class="score-chip">{s["league"]} | {s["away"]} {s["a_score"]} · {s["home"]} {s["h_score"]} <span class="score-status">{s["status"]}</span></span>'
-        for s in scores
-    ])
+    chips = "".join([f'<span class="score-chip">{s["league"]} | {s["away"]} {s["a_score"]} · {s["home"]} {s["h_score"]} <span class="score-status">{s["status"]}</span></span>' for s in scores])
     st.markdown(f'<div class="scores-bar"><div class="scores-track">{chips * 3}</div></div>', unsafe_allow_html=True)
 
-st.markdown(f"""
-<div class="pv-header">
-    <div>
-        <div class="pv-logo-name">PropVault</div>
-        <div style="color:#ffffff; font-size:14px; font-weight:500;">
-            When the "Fair Value" price is lower than the available odds, you have a mathematical edge.
-        </div>
-    </div>
-    <div style="display:flex; gap:15px; align-items:center;">
-        <a class="pv-beer-btn" href="https://www.buymeacoffee.com/notjxck" target="_blank">🍺 Buy me a beer</a>
-        <div style="color:#22c55e; border:1px solid #166534; background:#052e16; padding:8px 20px; border-radius:100px; font-size:12px; font-weight:900;">
-            ● LIVE
-        </div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+# ... (Keep your Header/Stats code here) ...
 
-bets = st.session_state.bets
-
-avg_ev = round(sum(b["EV %"] for b in bets) / len(bets), 1) if bets else 0
-top_ev = max([b["EV %"] for b in bets]) if bets else 0
-
-st.markdown(f"""
-<div class="pv-stats">
-    <div class="pv-stat"><div class="pv-stat-num">{len(bets)}</div><div class="pv-stat-lbl">Edges Found</div></div>
-    <div class="pv-stat"><div class="pv-stat-num">+{avg_ev}%</div><div class="pv-stat-lbl">Avg EV</div></div>
-    <div class="pv-stat"><div class="pv-stat-num">+{top_ev}%</div><div class="pv-stat-lbl">Top EV</div></div>
-</div>
-""", unsafe_allow_html=True)
-
+# ── THE UNICORN VAULT ──
 st.markdown('<div style="max-width:1000px; margin: 0 auto; padding: 0 20px;">', unsafe_allow_html=True)
 
-st.markdown("""
-<div class="card strategy-box">
-    <h3 style="color:#ef4444; margin:0 0 10px 0; font-size:18px; font-weight:900;">📉 The "Anti-Public" Strategy</h3>
-    <p style="color:#94a3b8; font-size:14px; line-height:1.7; margin:0;">
-        Data confirms: <span class="s-stat-over">Overs return -2.26% ROI</span> while
-        <span class="s-stat-under">Unders return +3.33% ROI</span>.
-        An <span style="color:#ffffff; font-weight:700;">Over</span> almost always requires flawless play.
-        An <span style="color:#ffffff; font-weight:700;">Under</span> wins if there is an injury, blowout, foul trouble, or just a bad night.
-        <span style="color:#ffffff; font-style:italic;">Bet on the chaos, not the perfection.</span>
-    </p>
-</div>
-""", unsafe_allow_html=True)
-
 if bets:
-    st.markdown('<p style="color:#475569; font-weight:800; font-size:11px; letter-spacing:2px; margin:30px 0 15px 0; text-transform:uppercase;">Live Prop Edges</p>', unsafe_allow_html=True)
-
-    for b in bets:
-        tier_color = "#7dd3fc" if b["EV %"] >= 7 else "#fbbf24" if b["EV %"] >= 5 else "#64748b"
-
-        st.markdown(f"""
-        <div class="card" style="display:flex; justify-content:space-between;">
+    # 1. Sort to find the highest EV % (The Unicorn)
+    sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
+    unicorn = sorted_bets[0]
+    
+    # 2. Render THE LONE UNICORN
+    st.markdown(f"""
+    <div class="card" style="border: 2px solid #7dd3fc; background: linear-gradient(145deg, rgba(125, 211, 252, 0.1) 0%, rgba(6, 9, 18, 0.5) 100%); margin-bottom: 35px; position: relative; overflow: hidden;">
+        <div style="position: absolute; right: -20px; top: -10px; font-size: 120px; opacity: 0.1; transform: rotate(15deg);">🦄</div>
+        <div style="display: flex; justify-content: space-between; position: relative; z-index: 1;">
             <div>
-                <div style="color:{tier_color}; font-size:10px; font-weight:800;">
-                    {b.get('Sport')} · {b.get('Market')}
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                    <span style="font-size: 20px;">🦄</span>
+                    <span style="background: #7dd3fc; color: #060912; padding: 2px 10px; border-radius: 100px; font-size: 11px; font-weight: 900; letter-spacing: 1px;">THE LONE UNICORN</span>
                 </div>
+                <div style="font-size: 36px; font-weight: 900; line-height: 1;">{unicorn.get('Player')}</div>
+                <div style="font-size: 22px; font-weight: 700; color: #7dd3fc; margin-top: 5px;">{unicorn.get('Side')}</div>
+                <div style="color: #64748b; font-size: 14px;">{unicorn.get('Market')} · {unicorn.get('Game')}</div>
+                <div class="odds-row" style="margin-top: 20px;">
+                    <span class="odds-badge" style="background: #7dd3fc; color: #060912; border: none;">{unicorn.get('Target Odds')}</span>
+                    <span style="color: #94a3b8; font-size: 14px; font-weight: 600;">Fair Price: {unicorn.get('Fair Odds')}</span>
+                </div>
+            </div>
+            <div style="text-align: right; display: flex; flex-direction: column; justify-content: center;">
+                <div style="color: #7dd3fc; font-size: 56px; font-weight: 900; line-height: 1;">+{unicorn.get('EV %')}%</div>
+                <div style="font-size: 11px; color: #64748b; font-weight: 800; letter-spacing: 1px; margin-top: 5px;">EDGE DETECTED</div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 3. Render THE HERD (everything else)
+    st.markdown('<p style="color:#475569; font-weight:800; font-size:11px; letter-spacing:2px; margin-bottom: 15px;">THE HERD (Live Edges)</p>', unsafe_allow_html=True)
+    
+    for b in sorted_bets[1:]:
+        tier_color = "#7dd3fc" if b["EV %"] >= 7 else "#fbbf24" if b["EV %"] >= 5 else "#64748b"
+        st.markdown(f"""
+        <div class="card" style="display:flex; justify-content:space-between; margin-bottom:12px;">
+            <div>
+                <div style="color:{tier_color}; font-size:10px; font-weight:800;">{b.get('Sport')} · {b.get('Market')}</div>
                 <div style="font-size:24px; font-weight:900;">{b.get('Player')}</div>
                 <div style="font-size:18px; font-weight:700; color:{tier_color};">{b.get('Side')}</div>
-                <div style="color:#64748b;">{b.get('Game')}</div>
                 <div class="odds-row">
                     <span class="odds-badge">{b.get('Target Odds')}</span>
-                    <span style="color:#475569;">Fair (Pinny): {b.get('Fair Odds')}</span>
+                    <span style="color:#475569;">Fair: {b.get('Fair Odds')}</span>
                 </div>
             </div>
             <div style="text-align:right;">
-                <div style="color:{tier_color}; font-size:38px; font-weight:900;">
-                    +{b.get('EV %')}%
-                </div>
-                <div style="font-size:10px;">Expected Value</div>
+                <div style="color:{tier_color}; font-size:38px; font-weight:900;">+{b.get('EV %')}%</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 else:
-    st.markdown(
-        '<div style="text-align:center; padding:60px 0; color:#334155; font-weight:700;">No Prop Edges found. Try again in 5 mins.</div>',
-        unsafe_allow_html=True
-    )
+    st.markdown('<div style="text-align:center; padding:60px 0; color:#334155; font-weight:700;">No Unicorns roaming right now.</div>', unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
