@@ -196,14 +196,21 @@ now = time.time()
 time_since_fetch = now - st.session_state.bets_fetched_at
 remaining = 1800 - time_since_fetch
 
-if time_since_fetch >= 1800:
-    raw_bets, errors = find_ev_bets(api_key)
-    st.session_state.cached_bets = raw_bets if raw_bets else []
-    st.session_state.bets_fetched_at = now
-    remaining = 1800
-    if raw_bets:
-        st.session_state.last_good_bets = raw_bets
+raw_bets = None
+errors = None
 
+# ✅ Only fetch when needed
+if time_since_fetch >= 1800 or st.session_state.bets_fetched_at == 0:
+    raw_bets, errors = find_ev_bets(api_key)
+
+    # ✅ Only overwrite if we actually got data
+    if raw_bets:
+        st.session_state.cached_bets = raw_bets
+        st.session_state.last_good_bets = raw_bets
+        st.session_state.bets_fetched_at = now
+        remaining = 1800
+
+# ✅ Fallback logic
 if st.session_state.cached_bets:
     bets = st.session_state.cached_bets
 elif st.session_state.last_good_bets:
@@ -211,9 +218,8 @@ elif st.session_state.last_good_bets:
 else:
     bets = []
 
-m, s = divmod(int(remaining), 60)
+m, s = divmod(int(max(0, remaining)), 60)
 mins, secs = m, s
-
 # ── RENDER ──
 
 # 1. Scores Ticker
