@@ -271,11 +271,11 @@ st.markdown("""
             Every bet must pass strict filters:
         </p>
 
-        <ul style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 12px 18px;">
-            <li>EV between <span style="color:#ffffff; font-weight:800;">1.5% and 8%</span></li>
-            <li>Minimum <span style="color:#ffffff; font-weight:800;">40% win probability</span></li>
-            <li>Only <span style="color:#f87171; font-weight:800;">under outcomes</span></li>
-        </ul>
+        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 12px 0;">
+            • EV between <span style="color:#ffffff; font-weight:800;">1.5% and 8%</span><br>
+            • Minimum <span style="color:#ffffff; font-weight:800;">40% win probability</span><br>
+            • Only <span style="color:#f87171; font-weight:800;">under outcomes</span>
+        </p>
 
         <p style="color:#ffffff; font-size:14px; line-height:1.7; margin:0; font-style:italic;">
             No noise. No hype. Only mispriced downside.
@@ -283,7 +283,6 @@ st.markdown("""
     </div>
 </div>
 """, unsafe_allow_html=True)
-
 # 5. The Feed (Mapped to Engine Output)
 if bets:
     sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
