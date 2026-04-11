@@ -45,36 +45,9 @@ def is_upcoming(commence_time_str: str) -> bool:
     except Exception:
         return False
 
-def get_events_with_both_books(api_key: str, sport: str) -> List[Dict]:
-    try:
-        r = requests.get(
-            f"{BASE_URL}/sports/{sport}/odds",
-            params={
-                "apiKey": api_key,
-                "regions": "us,eu",
-                "markets": "h2h",
-                "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}",
-                "oddsFormat": "american",
-            },
-            timeout=10,
-        )
-        r.raise_for_status()
-        events = r.json()
-        return [
-            e for e in events
-            if is_upcoming(e.get("commence_time", ""))
-            and {b["key"] for b in e.get("bookmakers", [])} >= {SHARP_BOOK, TARGET_BOOK}
-        ]
-    except Exception:
-        return []
-
 # ── L5 Stats Lookups ───────────────────────────────────────────────────
 
 def get_nba_l5(player_name: str, stat: str) -> str:
-    """
-    Fetches last 5 game average for a given NBA player and stat.
-    stat: 'reb' or 'ast'
-    """
     try:
         search = requests.get(
             "https://www.balldontlie.io/api/v1/players",
@@ -110,9 +83,6 @@ def get_nba_l5(player_name: str, stat: str) -> str:
 
 
 def get_mlb_l5_strikeouts(player_name: str) -> str:
-    """
-    Fetches last 5 starts avg strikeouts for a pitcher using MLB Stats API.
-    """
     try:
         search = requests.get(
             "https://statsapi.mlb.com/api/v1/people/search",
@@ -149,10 +119,6 @@ def get_mlb_l5_strikeouts(player_name: str) -> str:
 
 
 def get_player_l5(player_name: str, market_key: str) -> str:
-    """
-    Routes to the correct stats lookup based on market.
-    Returns a display string like 'L5: 6.2 reb' or None.
-    """
     if market_key == "player_rebounds":
         val = get_nba_l5(player_name, "reb")
         return f"L5 avg: {val} reb" if val else None
@@ -171,94 +137,94 @@ def find_ev_bets(api_key: str):
     errors = []
 
     for sport, prop_markets in SPORTS_MARKETS.items():
-        eligible_events = get_events_with_both_books(api_key, sport)
+        try:
+            # Single bulk call per sport — replaces per-event calls
+            r = requests.get(
+                f"{BASE_URL}/sports/{sport}/odds",
+                params={
+                    "apiKey": api_key,
+                    "regions": "us,eu",
+                    "markets": ",".join(prop_markets),
+                    "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}",
+                    "oddsFormat": "american",
+                },
+                timeout=15,
+            )
+            r.raise_for_status()
+            events = r.json()
 
-        if not eligible_events:
+        except Exception as e:
+            errors.append(f"{sport} bulk fetch: {str(e)}")
             continue
 
-        for event in eligible_events:
-            try:
-                r = requests.get(
-                    f"{BASE_URL}/sports/{sport}/events/{event['id']}/odds",
-                    params={
-                        "apiKey": api_key,
-                        "regions": "us,eu",
-                        "markets": ",".join(prop_markets),
-                        "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}",
-                        "oddsFormat": "american",
-                    },
-                    timeout=10,
+        for event in events:
+            if not is_upcoming(event.get("commence_time", "")):
+                continue
+
+            books = {b["key"]: b for b in event.get("bookmakers", [])}
+
+            if SHARP_BOOK not in books or TARGET_BOOK not in books:
+                continue
+
+            sharp_book = books[SHARP_BOOK]
+            target_book = books[TARGET_BOOK]
+
+            for sharp_market in sharp_book.get("markets", []):
+                target_market = next(
+                    (m for m in target_book.get("markets", [])
+                     if m["key"] == sharp_market["key"]),
+                    None,
                 )
-                r.raise_for_status()
-                odds = r.json()
-
-                books = {b["key"]: b for b in odds.get("bookmakers", [])}
-
-                if SHARP_BOOK not in books or TARGET_BOOK not in books:
+                if not target_market:
                     continue
 
-                sharp_book = books[SHARP_BOOK]
-                target_book = books[TARGET_BOOK]
+                sharp_map = {
+                    (o["description"], o.get("point"), o["name"]): o
+                    for o in sharp_market.get("outcomes", [])
+                }
+                target_map = {
+                    (o["description"], o.get("point"), o["name"]): o
+                    for o in target_market.get("outcomes", [])
+                }
 
-                for sharp_market in sharp_book.get("markets", []):
-                    target_market = next(
-                        (m for m in target_book.get("markets", [])
-                         if m["key"] == sharp_market["key"]),
-                        None,
-                    )
-                    if not target_market:
+                for (player, point, side), target_o in target_map.items():
+                    opp_side = "Under" if side == "Over" else "Over"
+                    key = (player, point, side)
+                    opp_key = (player, point, opp_side)
+
+                    if key not in sharp_map or opp_key not in sharp_map:
                         continue
 
-                    sharp_map = {
-                        (o["description"], o.get("point"), o["name"]): o
-                        for o in sharp_market.get("outcomes", [])
-                    }
-                    target_map = {
-                        (o["description"], o.get("point"), o["name"]): o
-                        for o in target_market.get("outcomes", [])
-                    }
+                    sharp_price = sharp_map[key]["price"]
+                    sharp_opp = sharp_map[opp_key]["price"]
 
-                    for (player, point, side), target_o in target_map.items():
-                        opp_side = "Under" if side == "Over" else "Over"
-                        key = (player, point, side)
-                        opp_key = (player, point, opp_side)
+                    fair_over, fair_under = no_vig_prob(sharp_price, sharp_opp)
+                    fair_prob = fair_over if side == "Over" else fair_under
 
-                        if key not in sharp_map or opp_key not in sharp_map:
-                            continue
+                    if fair_prob < MIN_WIN_PROB:
+                        continue
 
-                        sharp_price = sharp_map[key]["price"]
-                        sharp_opp = sharp_map[opp_key]["price"]
+                    ev = (fair_prob * american_to_decimal(target_o["price"]) - 1) * 100
 
-                        fair_over, fair_under = no_vig_prob(sharp_price, sharp_opp)
-                        fair_prob = fair_over if side == "Over" else fair_under
-
-                        if fair_prob < MIN_WIN_PROB:
-                            continue
-
-                        ev = (fair_prob * american_to_decimal(target_o["price"]) - 1) * 100
-
-                        if MIN_EV <= ev <= MAX_EV_CAP:
-                            l5 = get_player_l5(player, sharp_market["key"])
-                            bets.append({
-                                "Sport": sport.split("_")[1].upper(),
-                                "Game": f"{event.get('away_team')} @ {event.get('home_team')}",
-                                "Market": sharp_market["key"]
-                                    .replace("player_", "")
-                                    .replace("pitcher_", "")
-                                    .replace("batter_", "")
-                                    .replace("_", " ")
-                                    .title(),
-                                "Player": player,
-                                "Side": f"{side} {point}",
-                                "Target Odds": fmt_odds(target_o["price"]),
-                                "Fair Odds": fmt_odds(sharp_price),
-                                "Fair Prob": f"{fair_prob:.1%}",
-                                "EV %": round(ev, 2),
-                                "L5": l5,
-                            })
-
-            except Exception as e:
-                errors.append(f"{sport} | {event.get('id', 'unknown')}: {str(e)}")
+                    if MIN_EV <= ev <= MAX_EV_CAP:
+                        l5 = get_player_l5(player, sharp_market["key"])
+                        bets.append({
+                            "Sport": sport.split("_")[1].upper(),
+                            "Game": f"{event.get('away_team')} @ {event.get('home_team')}",
+                            "Market": sharp_market["key"]
+                                .replace("player_", "")
+                                .replace("pitcher_", "")
+                                .replace("batter_", "")
+                                .replace("_", " ")
+                                .title(),
+                            "Player": player,
+                            "Side": f"{side} {point}",
+                            "Target Odds": fmt_odds(target_o["price"]),
+                            "Fair Odds": fmt_odds(sharp_price),
+                            "Fair Prob": f"{fair_prob:.1%}",
+                            "EV %": round(ev, 2),
+                            "L5": l5,
+                        })
 
     bets.sort(key=lambda x: x["EV %"], reverse=True)
     return bets, errors
