@@ -6,7 +6,7 @@ MLB_PLAYER_URL = "https://statsapi.mlb.com/api/v1/people"
 
 
 # ─────────────────────────────────────────────
-# SAFE HELPERS
+# SAFE CONVERSION
 # ─────────────────────────────────────────────
 
 def safe_float(x):
@@ -16,7 +16,7 @@ def safe_float(x):
         if isinstance(x, (int, float)):
             return float(x)
         if isinstance(x, str):
-            if " " in x:  # handles weird MLB formats like "5 1/3"
+            if " " in x:
                 return float(x.split()[0])
             return float(x)
     except:
@@ -25,27 +25,35 @@ def safe_float(x):
 
 
 # ─────────────────────────────────────────────
-# GET TODAY STARTING PITCHERS
+# TODAY'S STARTING PITCHERS (FIXED)
 # ─────────────────────────────────────────────
 
 def get_today_pitchers():
     try:
-        r = requests.get(MLB_SCHEDULE_URL, params={
-            "sportId": 1,
-            "date": date.today().isoformat()
-        }, timeout=10)
+        r = requests.get(
+            MLB_SCHEDULE_URL,
+            params={
+                "sportId": 1,
+                "date": date.today().isoformat(),
+                "hydrate": "probablePitcher,team"
+            },
+            timeout=10
+        )
 
         data = r.json()
         pitchers = []
 
         for day in data.get("dates", []):
             for game in day.get("games", []):
+
                 for side in ["home", "away"]:
-                    p = game.get("teams", {}).get(side, {}).get("probablePitcher")
-                    if p:
+                    team = game.get("teams", {}).get(side, {})
+                    p = team.get("probablePitcher")
+
+                    if p and p.get("id"):
                         pitchers.append({
                             "id": p["id"],
-                            "name": p["fullName"]
+                            "name": p.get("fullName", "Unknown")
                         })
 
         return pitchers
@@ -89,7 +97,7 @@ def get_k9(player_id):
 
 
 # ─────────────────────────────────────────────
-# RECENT K/9 (LAST 5 GAMES)
+# LAST 5 GAMES K/9
 # ─────────────────────────────────────────────
 
 def get_recent_k9(player_id):
@@ -115,7 +123,7 @@ def get_recent_k9(player_id):
             ip += safe_float(s.get("inningsPitched"))
 
         if ip == 0:
-            return None  # no data at all
+            return None
 
         return (ks / ip) * 9
 
@@ -130,22 +138,21 @@ def get_recent_k9(player_id):
 def get_cold_fronts():
     pitchers = get_today_pitchers()
 
-    results = []
-
-    # If MLB gives nothing, we still return empty safely
     if not pitchers:
         return []
+
+    results = []
 
     for p in pitchers:
         k9 = get_k9(p["id"])
         recent_k9 = get_recent_k9(p["id"])
 
-        # fallback logic (THIS is the fix)
+        # fallback so we NEVER drop players
         if k9 is None:
             k9 = 0.0
 
         if recent_k9 is None:
-            recent_k9 = k9  # assume neutral form instead of dropping player
+            recent_k9 = k9
 
         delta = recent_k9 - k9
 
@@ -157,5 +164,4 @@ def get_cold_fronts():
             "cold_score": round(cold_score, 2)
         })
 
-    # always return something if pitchers exist
     return sorted(results, key=lambda x: x["cold_score"], reverse=True)
