@@ -191,13 +191,6 @@ if not bets:
         {"Sport": "MLB", "Game": "Chicago Cubs @ St. Louis Cardinals", "Market": "Strikeouts", "Player": "Paul Skenes", "Side": "Over 7.5", "Target Odds": "+112", "Fair Odds": "+105", "Fair Prob": "48.8%", "EV %": 6.23},
     ]
 
-if st.session_state.cached_bets:
-    bets = st.session_state.cached_bets
-elif st.session_state.last_good_bets:
-    bets = st.session_state.last_good_bets
-else:
-    bets = []
-
 m, s = divmod(int(remaining), 60)
 mins, secs = m, s
 # ── RENDER ──
