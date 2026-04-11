@@ -156,32 +156,30 @@ def fetch_scores():
     except: pass
     return scores
 
-# 4. Data Management & Refresh
-# Syncs Data every 15 mins
+# 4. Data Management & Global Sync
+# Heartbeat for Data (15 mins)
 st_autorefresh(interval=15 * 60 * 1000, key="unicorn_heartbeat")
-# Live Timer Heartbeat (1 sec) - This keeps the clock moving
+# Live Timer Heartbeat (1 sec)
 st_autorefresh(interval=1000, key="timer_heartbeat")
 
 api_key = os.environ.get("ODDS_API_KEY", "")
 
 @st.cache_data(ttl=900) 
-def get_cached_ev_data(api_key):
-    # We pull the bets and "stamp" them with the exact time they were found
+def get_global_data_bundle(api_key):
+    # We pull the bets and set a FIXED expiry target 15 mins from now
     bets, errors = find_ev_bets(api_key)
     return {
         "bets": bets if bets else [],
-        "fetched_at": time.time()
+        "expiry_timestamp": time.time() + 900 
     }
 
-# Pull the data bundle
-data_bundle = get_cached_ev_data(api_key)
-bets = data_bundle["bets"]
-fetched_at = data_bundle["fetched_at"]
+# Pull the bundle
+bundle = get_global_data_bundle(api_key)
+bets = bundle["bets"]
 
-# TIMER LOGIC: Calculate remaining time based on the DATA age, not the USER session
-refresh_interval = 900
-elapsed = time.time() - fetched_at
-remaining = max(0, int(refresh_interval - elapsed))
+# TIMER LOGIC: Calculate based on the FIXED target
+# Since 'expiry_timestamp' is inside the cache, it won't change on refresh.
+remaining = max(0, int(bundle["expiry_timestamp"] - time.time()))
 mins, secs = divmod(remaining, 60)
 
 # ── RENDER ──
