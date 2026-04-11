@@ -224,17 +224,15 @@ st.markdown(f"""
 
 # 5. Strategy Guide
 st.markdown("""
-<div style="max-width:1000px; margin: 0 auto 30px; padding: 0 20px;">
-    <div class="card" style="border-left: 4px solid #ef4444;">
-        <h3 style="color:#ef4444; margin:0 0 10px 0; font-size:18px; font-weight:900;">📉 The "Anti-Public" Strategy</h3>
-        <p style="color:#94a3b8; font-size:14px; line-height:1.7; margin:0;">
-            Data confirms: <span class="s-stat-over">Overs return -2.26% ROI</span> while 
-            <span class="s-stat-under">Unders return +3.33% ROI</span>.
-            An <span style="color:#ffffff; font-weight:700;">Over</span> almost always requires flawless play. 
-            An <span style="color:#ffffff; font-weight:700;">Under</span> wins if there is an injury, blowout, foul trouble, or just a bad night. 
-            <span style="color:#ffffff; font-style:italic;">Bet on the chaos, not the perfection.</span>
-        </p>
-    </div>
+<div class="card strategy-box">
+    <h3 style="color:#ef4444; margin:0 0 10px 0; font-size:18px; font-weight:900;">📉 The "Anti-Public" Strategy</h3>
+    <p style="color:#94a3b8; font-size:14px; line-height:1.7; margin:0;">
+        Data confirms: <span class="s-stat-over">Overs return -2.26% ROI</span> while 
+        <span class="s-stat-under">Unders return +3.33% ROI</span>.
+        An <span style="color:#ffffff; font-weight:700;">Over</span> almost always requires flawless play. 
+        An <span style="color:#ffffff; font-weight:700;">Under</span> wins if there is an injury, blowout, foul trouble, or just a bad night. 
+        <span style="color:#ffffff; font-style:italic;">Bet on the chaos, not the perfection.</span>
+    </p>
 </div>
 """, unsafe_allow_html=True)
 
