@@ -210,6 +210,10 @@ elif st.session_state.last_good_bets:
     bets = st.session_state.last_good_bets
 else:
     bets = []
+    
+# ADD THESE TWO LINES
+st.write(len(bets))
+st.write(bets[:1])
 
 m, s = divmod(int(remaining), 60)
 mins, secs = m, s
