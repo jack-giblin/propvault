@@ -178,7 +178,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# 3. Stats
+# 3. Stats Row
 num_edges = len(bets) if bets else 0
 avg_val = (sum(b.get('EV %', 0) for b in bets) / num_edges) if num_edges > 0 else 0
 top_val = max(b.get('EV %', 0) for b in bets) if num_edges > 0 else 0
@@ -205,42 +205,35 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# 5. Feed
+# 5. The Feed (Zero-Indentation Injection)
 if bets:
     sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
-    html_blocks = []
+    feed_html = []
+    
     for i, b in enumerate(sorted_bets):
-        b_side, b_market = b.get('Side', ''), b.get('Market', '')
+        # We build the strings without ANY indentation to prevent Markdown code-block triggers
+        b_side = b.get('Side', '')
         b_theme = "under-theme" if "Under" in b_side else "over-theme"
-        l5_val = f'<div style="color:#7dd3fc; font-size:12px; font-weight:800; margin-bottom:8px;">{b.get("L5")}</div>' if b.get("L5") else ""
+        l5 = f'<div style="color:#7dd3fc; font-size:12px; font-weight:800; margin-bottom:8px;">{b.get("L5")}</div>' if b.get("L5") else ""
         
         if i == 0:
-            block = f"""
-            <div class="card" style="border: 1px solid #f87171; position: relative; overflow: hidden;">
-                <div style="position: absolute; right: -10px; top: -10px; font-size: 100px; opacity: 0.05;">📉</div>
-                <div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index:1;">
-                    <div>
-                        <div class="strategy-badge under-theme" style="margin-bottom: 12px; display: inline-block;">HIGH CONVICTION SHORT 🐻</div>
-                        <div style="font-size: 42px; font-weight: 900; line-height: 1;">{b.get('Player')}</div>
-                        <div style="color: #64748b; font-size: 16px; margin: 5px 0 10px 0;">{b.get('Game')}</div>
-                        {l5_val}
-                        <span class="strategy-badge {b_theme}" style="font-size: 18px; padding: 6px 12px;">{b_side} {b_market}</span>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="color: #f87171; font-size: 64px; font-weight: 900;">-{b.get('EV %')}%</div>
-                        <div style="font-size: 11px; color: #475569; font-weight: 800;">EXP_DECAY</div>
-                    </div>
-                </div>
-            </div>"""
+            card = f'<div class="card" style="border: 1px solid #f87171; position: relative; overflow: hidden;">' \
+                   f'<div style="position: absolute; right: -10px; top: -10px; font-size: 100px; opacity: 0.05;">📉</div>' \
+                   f'<div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index:1;">' \
+                   f'<div><div class="strategy-badge under-theme" style="margin-bottom: 12px; display: inline-block;">HIGH CONVICTION SHORT 🐻</div>' \
+                   f'<div style="font-size: 42px; font-weight: 900; line-height: 1;">{b.get("Player")}</div>' \
+                   f'<div style="color: #64748b; font-size: 16px; margin: 5px 0 10px 0;">{b.get("Game")}</div>' \
+                   f'{l5}<span class="strategy-badge {b_theme}" style="font-size: 18px; padding: 6px 12px;">{b_side} {b.get("Market")}</span></div>' \
+                   f'<div style="text-align: right;"><div style="color: #f87171; font-size: 64px; font-weight: 900;">-{b.get("EV %")}%</div>' \
+                   f'<div style="font-size: 11px; color: #475569; font-weight: 800;">EXP_DECAY</div></div></div></div>'
         else:
-            block = f"""
-            <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <div style="font-size:24px; font-weight:900;">{b.get('Player')} <span class="strategy-badge {b_theme}" style="margin-left:10px;">SHORT</span></div>
-                    <div style="color: #475569; font-size: 14px;">{b.get('Game')}</div>
-                </div>
-                <div style="color:#f87171; font-size:38px; font-weight:900;">-{b.get('EV %')}%</div>
-            </div>"""
-        html_blocks.append(textwrap.dedent(block))
-    
-    st.markdown(f'<div style="max-width:1000px; margin:0 auto; padding:0 20px;">{"".join(html_blocks)}</div>', unsafe_allow_html=True)
+            card = f'<div class="card" style="display:flex; justify-content:space-between; align-items:center;">' \
+                   f'<div><div style="font-size:24px; font-weight:900;">{b.get("Player")} <span class="strategy-badge {b_theme}" style="margin-left:10px;">SHORT</span></div>' \
+                   f'<div style="color: #475569; font-size: 14px;">{b.get("Game")}</div></div>' \
+                   f'<div style="color:#f87171; font-size:38px; font-weight:900;">-{b.get("EV %")}%</div></div>'
+        
+        feed_html.append(card)
+
+    # Wrap the entire collection and render in one go
+    full_feed = f'<div style="max-width:1000px; margin:0 auto; padding:0 20px;">{"".join(feed_html)}</div>'
+    st.markdown(full_feed, unsafe_allow_html=True)
