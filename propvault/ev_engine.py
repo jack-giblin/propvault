@@ -14,8 +14,10 @@ TARGET_BOOK = "novig"
 SPORTS = ["basketball_nba"]  # keep stable first (add MLB later if needed)
 
 PROP_MARKETS = [
+    "player_points",
     "player_rebounds",
     "player_assists",
+    "player_threes",
 ]
 
 # ── Math ───────────────────────────────────────────────────────────────
