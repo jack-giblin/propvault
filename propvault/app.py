@@ -237,7 +237,7 @@ st.markdown(f"""
             NEW BETS IN: <span style="color: #7dd3fc;">{mins:02d}:{secs:02d}</span>
         </div>
     </div>
-    <a href="https://buymeacoffee.com/notjxck" class="pv-beer-btn" target="_blank"><span>🍺</span> Buy me a beer</a>
+    <a href="https://buymeacoffee.com/notjxck" class="pv-beer-btn" target="_blank"><span>🍺</span> Keep The Servers Up</a>
 </div>
 """, unsafe_allow_html=True)
 
