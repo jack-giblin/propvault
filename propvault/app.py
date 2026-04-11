@@ -278,7 +278,6 @@ if bets:
                 </div>
                 <div style="font-size: 42px; font-weight: 900; line-height: 1;">{u.get('Player')}</div>
                 <div style="color: #64748b; font-size: 16px; font-weight: 700; margin: 5px 0 10px 0;">{u.get('Game')}</div>
-                
                 <span class="strategy-badge {u_theme}" style="font-size: 20px; padding: 6px 15px; display: inline-block;">{u_side}</span>
                 <div style="margin-top: 15px; display: flex; gap: 20px;">
                     <div><div style="font-size: 10px; color: #7dd3fc; font-weight: 800;">NOVIG</div><div style="background: #7dd3fc; color: #060912; padding: 4px 12px; border-radius: 8px; font-weight: 900; font-size: 20px;">{u.get('Target Odds')}</div></div>
@@ -302,7 +301,6 @@ if bets:
             <div>
                 <div style="font-size:24px; font-weight:900; line-height: 1.1;">{b.get('Player')} <span class="strategy-badge {b_theme}" style="font-size:14px; margin-left:10px;">{b_side}</span></div>
                 <div style="color: #475569; font-size: 14px; font-weight: 700; margin-top: 4px;">{b.get('Game')}</div>
-                
                 <div style="margin-top: 12px; display: flex; gap: 15px;">
                     <span style="color:#7dd3fc; font-weight:800;">Novig: {b.get('Target Odds')}</span>
                     <span style="color:#475569; font-weight:700;">Fair: {b.get('Fair Odds')}</span>
