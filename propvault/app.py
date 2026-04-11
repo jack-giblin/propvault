@@ -177,6 +177,12 @@ if time_since_fetch >= 1800:
     remaining = 1800
     if raw_bets:
         st.session_state.last_good_bets = raw_bets
+if st.session_state.cached_bets:
+    bets = st.session_state.cached_bets
+elif st.session_state.last_good_bets:
+    bets = st.session_state.last_good_bets
+else:
+    bets = []
 
 if not bets:
     bets = [
