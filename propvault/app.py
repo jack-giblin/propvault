@@ -112,7 +112,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 .pv-stat-lbl {
     font-size: 11px;
     text-transform: uppercase;
-    color: #475569;
+    color: #cbd5e1;
     letter-spacing: 1.5px;
 }
 
@@ -214,7 +214,7 @@ scores = fetch_scores()
 if scores:
     chips = "".join([
         f'<span class="score-chip">{s["league"]} | {s["away"]} {s["a_score"]} · {s["home"]} {s["h_score"]} '
-        f'<span style="color:#475569; margin-left:5px;">{s["status"]}</span></span>'
+        f'<span style="color:#cbd5e1; margin-left:5px;">{s["status"]}</span></span>'
         for s in scores
     ])
 
