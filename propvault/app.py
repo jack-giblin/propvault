@@ -177,7 +177,7 @@ st.markdown(f"""
     <div>
         <div class="pv-logo-name">Entropy Capital</div>
         <div style="color: #475569; font-size: 11px; font-weight: 800; letter-spacing: 1px;">
-            ASSET DEPRECIATION TERMINAL <span style="color: #f87171; margin-left:10px;">• LIQUIDATING BULLS 🐂</span>
+            ASSET DEPRECIATION TERMINAL <span style="color: #f87171; margin-left:10px;">• Bet on the chaos, not the perfection.</span>
         </div>
     </div>
     <a href="https://buymeacoffee.com/notjxck" class="pv-beer-btn" target="_blank"><span>🍺</span> Support Chaos</a>
@@ -202,9 +202,9 @@ st.markdown("""
 <div style="max-width:1000px; margin: 0 auto 30px; padding: 0 20px;">
     <div class="card" style="border-left: 4px solid #f87171;">
         <h3 style="color:#f87171; margin:0 0 10px 0; font-size:18px; font-weight:900;">📉 The "Anti-Public" Strategy</h3>
-        <p style="color:#94a3b8; font-size:14px; line-height:1.7; margin:0;">
-            The Bulls 🐂 bet on records and highlight reels. We bet on <span style="color: #f87171; font-weight: 800;">Regression to the Mean</span>. 
-            When the hype peaks, we short the outcome. Market crashes don't happen to us—we profit from them.
+        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0;">
+            The Public bets on records and highlight reels. We bet on <span style="color: #f87171; font-weight: 800;">Regression to the Mean</span>. 
+            When the hype peaks, we short the outcome. Market crashes don't happen to us: we profit from them.
             <span style="color:#ffffff; font-style:italic;">1929 Style: BET THE UNDER.</span>
         </p>
     </div>
@@ -223,20 +223,20 @@ if bets:
         l5_val = f'<div style="color:#7dd3fc; font-size:12px; font-weight:800; margin: 8px 0;">L5 Average: {b.get("L5")}</div>' if b.get("L5") else ""
         
         if i == 0:
-            card = f'<div class="card" style="border: 1px solid #f87171; position: relative; overflow: hidden;">' \
+            card = f'<div class="card" style="border: 1px solid #fbbf24; position: relative; overflow: hidden;">' \
                    f'<div style="position: absolute; right: -10px; top: -10px; font-size: 100px; opacity: 0.05;">🐻</div>' \
                    f'<div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index:1;">' \
                    f'<div><div class="strategy-badge under-theme" style="margin-bottom: 12px; display: inline-block;">CRITICAL ANOMALY 📉</div>' \
                    f'<div style="font-size: 42px; font-weight: 900; line-height: 1;">{b.get("Player")}</div>' \
                    f'<div style="color: #64748b; font-size: 16px; margin: 5px 0;">{b.get("Game")}</div>' \
                    f'{l5_val}<span class="strategy-badge {b_theme}" style="font-size: 18px; padding: 6px 12px;">SHORT {b.get("Market")}</span></div>' \
-                   f'<div style="text-align: right;"><div style="color: #f87171; font-size: 64px; font-weight: 900;">-{b.get("EV %")}%</div>' \
+                   f'<div style="text-align: right;"><div style="color: #f87171; font-size: 64px; font-weight: 900;">+{b.get("EV %")}%</div>' \
                    f'<div style="font-size: 11px; color: #475569; font-weight: 800;">CRASH_PROB</div></div></div></div>'
         else:
             card = f'<div class="card" style="display:flex; justify-content:space-between; align-items:center;">' \
                    f'<div><div style="font-size:24px; font-weight:900;">{b.get("Player")} <span class="strategy-badge {b_theme}" style="margin-left:10px;">SELL</span></div>' \
                    f'<div style="color: #475569; font-size: 14px;">{b.get("Game")}</div>{l5_val}</div>' \
-                   f'<div style="color:#f87171; font-size:38px; font-weight:900;">-{b.get("EV %")}%</div></div>'
+                   f'<div style="color:#fbbf24; font-size:38px; font-weight:900;">+{b.get("EV %")}%</div></div>'
         
         feed_html.append(card)
 
