@@ -183,43 +183,24 @@ def fetch_scores():
     return scores
 
 # ── 4. DATA MANAGEMENT & SYNC ──
+
 st_autorefresh(interval=30000, key="countdown_tick")
 
 api_key = os.environ.get("ODDS_API_KEY", "")
 
-if "bets_fetched_at" not in st.session_state:
-    st.session_state.bets_fetched_at = 0
-    st.session_state.cached_bets = []
-    st.session_state.last_good_bets = []
+# 🔥 This handles everything (caching + timing)
+bets, errors = find_ev_bets(api_key)
 
-now = time.time()
-time_since_fetch = now - st.session_state.bets_fetched_at
-remaining = 1800 - time_since_fetch
+# Optional: show errors if something breaks
+if errors:
+    st.error(errors)
 
-raw_bets = None
-errors = None
-
-# ✅ Only fetch when needed
-if time_since_fetch >= 1800 or st.session_state.bets_fetched_at == 0:
-    raw_bets, errors = find_ev_bets(api_key)
-
-    # ✅ Only overwrite if we actually got data
-    if raw_bets:
-        st.session_state.cached_bets = raw_bets
-        st.session_state.last_good_bets = raw_bets
-        st.session_state.bets_fetched_at = now
-        remaining = 1800
-
-# ✅ Fallback logic
-if st.session_state.cached_bets:
-    bets = st.session_state.cached_bets
-elif st.session_state.last_good_bets:
-    bets = st.session_state.last_good_bets
-else:
+# Simple fallback
+if not bets:
     bets = []
 
-m, s = divmod(int(max(0, remaining)), 60)
-mins, secs = m, s
+# Fake countdown (just visual)
+mins, secs = 30, 0
 # ── RENDER ──
 
 # 1. Scores Ticker
