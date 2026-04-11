@@ -100,7 +100,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     font-weight: 900;
     line-height: 1;
     margin-bottom: 6px;
-    color: #fbbf24;
+    color: #f87171;
 }
 .pv-stat-lbl {
     font-size: 11px;
