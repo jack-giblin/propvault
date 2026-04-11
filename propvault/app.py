@@ -32,7 +32,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 }
 .scores-track {
     display: inline-flex;
-    animation: scroll-left 120s linear infinite;
+    animation: scroll-left 180s linear infinite;
 }
 
 @keyframes scroll-left {
@@ -354,7 +354,7 @@ if bets:
             # Highlighted Critical Anomaly
             card = f'<div class="card" style="border: 1px solid #f87171; position: relative; overflow: hidden;">' \
                    f'<div style="position: absolute; right: -10px; top: -10px; font-size: 100px; opacity: 0.05;">🐻</div>' \
-                   f'<div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index:1;">' \
+                   f'<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; position: relative; z-index:1;">' \
                    f'<div><div class="strategy-badge under-theme" style="margin-bottom: 12px; display: inline-block;">CRITICAL UNDER 📉</div>' \
                    f'<div style="font-size: 42px; font-weight: 900; line-height: 1;">{b.get("Player")}</div>' \
                    f'<div style="color: #cbd5e1; font-size: 16px; margin: 5px 0;">{b.get("Game")}</div>' \
@@ -366,7 +366,7 @@ if bets:
         else:
             # Standard List Item
             card = f'<div class="card">' \
-                   f'<div style="display:flex; justify-content:space-between; align-items:center;">' \
+                   f'<div style="display:flex; flex-wrap: wrap; justify-content:space-between; align-items:center;">' \
                    f'<div><div style="font-size:24px; font-weight:900;">{b.get("Player")} <span class="strategy-badge {b_theme}" style="margin-left:10px;">{b_side_full.upper()}</span></div>' \
                    f'<div style="color: #38cdff; font-size: 14px;">{b.get("Game")}</div>' \
                    f'{l5_display}</div>' \
