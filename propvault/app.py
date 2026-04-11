@@ -167,7 +167,7 @@ def get_global_expiry():
     """Reads or creates a global expiry time that persists across all refreshes."""
     now = time.time()
     if not os.path.exists(TIMESTAMP_FILE):
-        expiry = now + 900
+        expiry = round(now + 900)
         with open(TIMESTAMP_FILE, "w") as f:
             f.write(str(expiry))
         return expiry
@@ -194,7 +194,7 @@ def get_cached_bets(api_key):
 
 bets = get_cached_bets(api_key)
 
-# TIMER LOGIC: Math based on the Global File
+# --- 2. TIMER CALCULATION (Using only the Global File) ---
 remaining = max(0, int(global_expiry - time.time()))
 mins, secs = divmod(remaining, 60)
 
@@ -216,13 +216,13 @@ if remaining <= 0:
     remaining = 900
 mins, secs = divmod(remaining, 60)
 
-# 3. Header
+# --- 3. HEADER ---
 st.markdown(f"""
 <div class="pv-header">
     <div>
         <div class="pv-logo-name">PropVault</div>
         <div style="color: #475569; font-size: 11px; font-weight: 800; letter-spacing: 1px;">
-            NEW BETS: <span style="color: #7dd3fc;">{mins:02d}:{secs:02d}</span>
+            NEW BETS IN: <span style="color: #7dd3fc;">{mins:02d}:{secs:02d}</span>
         </div>
     </div>
     <a href="https://buymeacoffee.com/jackgiblin" class="pv-beer-btn" target="_blank"><span>🍺</span> Buy me a beer</a>
