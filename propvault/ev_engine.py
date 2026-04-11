@@ -12,16 +12,15 @@ MIN_WIN_PROB = 0.40
 SHARP_BOOK = "pinnacle"
 TARGET_BOOK = "novig"
 
-UNDER_ONLY_MARKETS = {"pitcher_strikeouts", "player_assists"}
+UNDER_ONLY_MARKETS = {"pitcher_strikeouts",}
 
 GAME_MARKETS = {
-    "basketball_nba": ["totals"],
-    "baseball_mlb": ["totals"],
-    "icehockey_nhl": ["totals"],
+    "basketball_nba": ["totals", "spreads"],
+    "baseball_mlb": ["totals", "spreads"],
+    "icehockey_nhl": ["totals", "spreads"],
 }
 
 PROP_MARKETS = {
-    "basketball_nba": ["player_assists"],
     "baseball_mlb": ["pitcher_strikeouts"],
 }
 
