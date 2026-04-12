@@ -12,7 +12,7 @@ MIN_WIN_PROB = 0.40
 SHARP_BOOK = "pinnacle"
 TARGET_BOOK = "novig"
 
-UNDER_ONLY_MARKETS = {"pitcher_strikeouts", "batter_total_bases"}
+UNDER_ONLY_MARKETS = {"pitcher_strikeouts",}
 
 GAME_MARKETS = {
     "basketball_nba": ["totals", "spreads"],
@@ -21,7 +21,7 @@ GAME_MARKETS = {
 }
 
 PROP_MARKETS = {
-    "baseball_mlb": ["pitcher_strikeouts", "batter_total_bases"],
+    "baseball_mlb": ["pitcher_strikeouts"],
 }
 
 # ── Math ───────────────────────────────────────────────────────────────
@@ -45,14 +45,6 @@ def is_upcoming(commence_time_str: str) -> bool:
     except:
         return False
 
-def kelly_bet(fair_prob: float, target_odds: float, bankroll: float, fraction: float = 0.5) -> str:
-    b = american_to_decimal(target_odds) - 1
-    q = 1 - fair_prob
-    kelly = (b * fair_prob - q) / b
-    kelly = max(kelly, 0)
-    bet_size = round(kelly * fraction * bankroll, 2)
-    return f"${bet_size:.2f}"
-
 # ── L5 Stats Lookups ───────────────────────────────────────────────────
 
 def get_mlb_l5_strikeouts(player_name: str) -> str:
@@ -61,6 +53,7 @@ def get_mlb_l5_strikeouts(player_name: str) -> str:
         people = search.json().get("people", [])
         if not people: return None
         player_id = people[0]["id"]
+        # Updated to 2026 for the current season
         logs = requests.get(f"https://statsapi.mlb.com/api/v1/people/{player_id}/stats", params={"stats": "gameLog", "group": "pitching", "season": 2026, "limit": 5}, timeout=8)
         splits = logs.json().get("stats", [{}])[0].get("splits", [])
         if not splits: return None
@@ -69,6 +62,7 @@ def get_mlb_l5_strikeouts(player_name: str) -> str:
     except: return None
 
 def get_player_l5(player_name: str, market_key: str) -> str:
+    # NBA check removed
     if market_key == "pitcher_strikeouts":
         val = get_mlb_l5_strikeouts(player_name)
         return f"L5 avg: {val} K" if val else None
@@ -76,7 +70,7 @@ def get_player_l5(player_name: str, market_key: str) -> str:
 
 # ── Processing Helper ──────────────────────────────────────────────────
 
-def process_logic(events, sport, bets, bankroll=100):
+def process_logic(events, sport, bets):
     for event in events:
         if not is_upcoming(event.get("commence_time", "")):
             continue
@@ -122,12 +116,11 @@ def process_logic(events, sport, bets, bankroll=100):
                         "Fair Prob": f"{fair_prob:.1%}",
                         "EV %": round(ev, 2),
                         "L5": l5,
-                        "Kelly (Half)": kelly_bet(fair_prob, target_o["price"], bankroll),
                     })
 
 # ── Core Engine ────────────────────────────────────────────────────────
 
-def find_ev_bets(api_key: str, bankroll: float = 100):
+def find_ev_bets(api_key: str):
     bets = []
     errors = []
 
@@ -139,7 +132,7 @@ def find_ev_bets(api_key: str, bankroll: float = 100):
                 "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}", "oddsFormat": "american"
             }, timeout=15)
             r.raise_for_status()
-            process_logic(r.json(), sport, bets, bankroll)
+            process_logic(r.json(), sport, bets)
         except Exception as e:
             errors.append(f"{sport} totals error: {str(e)}")
 
@@ -155,7 +148,7 @@ def find_ev_bets(api_key: str, bankroll: float = 100):
                         "bookmakers": f"{SHARP_BOOK},{TARGET_BOOK}", "oddsFormat": "american"
                     }, timeout=10)
                     if r.status_code == 200:
-                        process_logic([r.json()], sport, bets, bankroll)
+                        process_logic([r.json()], sport, bets)
                 except:
                     continue
         except Exception as e:
