@@ -12,7 +12,7 @@ MIN_WIN_PROB = 0.40
 SHARP_BOOK = "pinnacle"
 TARGET_BOOK = "novig"
 
-UNDER_ONLY_MARKETS = {"pitcher_strikeouts"}
+UNDER_ONLY_MARKETS = {"pitcher_strikeouts", "batter_total_bases"}
 
 GAME_MARKETS = {
     "basketball_nba": ["totals", "spreads"],
@@ -21,7 +21,7 @@ GAME_MARKETS = {
 }
 
 PROP_MARKETS = {
-    "baseball_mlb": ["pitcher_strikeouts"],
+    "baseball_mlb": ["pitcher_strikeouts", "batter_total_bases"],
 }
 
 # ── Math ───────────────────────────────────────────────────────────────
