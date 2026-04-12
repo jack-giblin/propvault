@@ -310,8 +310,8 @@ bets, _ = get_cached_bets(bankroll)
 
 # 5. The Feed
 if bets:
-        sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
-        feed_html = []
+    sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
+    feed_html = []
 
     for i, b in enumerate(sorted_bets):
         b_side_full = b.get('Side', 'Under 0.0')
