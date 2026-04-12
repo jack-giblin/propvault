@@ -21,7 +21,10 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 [data-testid="stHeader"] { background: transparent !important; }
 [data-testid="stStatusWidget"] { display: none !important; }
 
-.block-container {
+.block-container,
+[data-testid="stAppViewBlockContainer"],
+[data-testid="stMainBlockContainer"],
+section[data-testid="stMain"] > div {
     padding: 0 !important;
     max-width: 100% !important;
 }
@@ -150,20 +153,23 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     border: 1px solid #1e293b !important;
     border-radius: 24px !important;
     padding: 28px !important;
-    margin-bottom: 24px !important;
-    max-width: 900px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
+    max-width: 852px !important;
+    width: 100% !important;
+    margin: 0 auto 24px !important;
+    box-sizing: border-box !important;
 }
+
 [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"] > div > div {
     padding-bottom: 0 !important;
 }
+
 [data-testid="stNumberInput"] input {
     background: #0f172a !important;
     border: 1px solid #1e293b !important;
     color: #e2e8f0 !important;
     border-radius: 10px !important;
 }
+
 @media (max-width: 600px) {
     .pv-header { flex-direction: column; gap: 12px; }
     .pv-logo-name { font-size: 32px; }
