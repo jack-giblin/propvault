@@ -5,7 +5,7 @@ from typing import List, Dict, Tuple
 BASE_URL = "https://api.the-odds-api.com/v4"
 
 # ── Config ─────────────────────────────────────────────────────────────
-MIN_EV = 0.5
+MIN_EV = 1.5
 MAX_EV_CAP = 8.0
 MIN_WIN_PROB = 0.40
 
