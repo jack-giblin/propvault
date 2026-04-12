@@ -19,8 +19,12 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 }
 
 [data-testid="stHeader"] { background: transparent !important; }
-.block-container { padding: 0 !important; max-width: 100% !important; }
 [data-testid="stStatusWidget"] { display: none !important; }
+
+.block-container {
+    padding: 0 !important;
+    max-width: 100% !important;
+}
 
 /* ── Live scores ticker ── */
 .scores-bar {
@@ -29,6 +33,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     padding: 12px 0;
     overflow: hidden;
     white-space: nowrap;
+    width: 100%;
 }
 .scores-track {
     display: inline-flex;
@@ -50,14 +55,19 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     color: #ffffff;
 }
 
+/* ── Centered wrapper ── */
+.pv-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
 /* ── Brand Header ── */
 .pv-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    max-width: 1000px;
-    margin: 40px auto 30px;
-    padding: 0 20px;
+    padding: 40px 0 30px;
 }
 
 .pv-logo-name {
@@ -88,9 +98,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
-    max-width: 1000px;
-    margin: 0 auto 30px;
-    padding: 0 20px;
+    margin-bottom: 24px;
 }
 
 .pv-stat {
@@ -136,14 +144,17 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 .under-theme { background: #064e3b; color: #34d399; }
 .over-theme { background: #450a0a; color: #f87171; }
 
-/* ── Kelly Container ── */
+/* ── Kelly container ── */
 [data-testid="stVerticalBlockBorderWrapper"] > div {
     background: rgba(15, 23, 42, 0.6) !important;
     border: 1px solid #1e293b !important;
     border-radius: 24px !important;
-    max-width: 1000px !important;
-    margin: 0 auto 30px !important;
     padding: 28px !important;
+    margin-bottom: 24px !important;
+}
+
+[data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"] > div > div {
+    padding-bottom: 0 !important;
 }
 
 [data-testid="stNumberInput"] input {
@@ -218,21 +229,23 @@ if scores:
     )
 
 # 2. Header
-st.markdown(f"""
-<div class="pv-header">
-    <div>
-        <div class="pv-logo-name">+EV BOOKIE</div>
-        <div style="color: #ffffff; font-size: 11px; font-weight: 800; letter-spacing: 1px;">
-            +EV ANALYTICS ENGINE <span style="color: #f87171; margin-left:10px;">• Bet on the chaos, not the perfection.</span>
+st.markdown("""
+<div class="pv-wrap">
+    <div class="pv-header">
+        <div>
+            <div class="pv-logo-name">+EV BOOKIE</div>
+            <div style="color: #ffffff; font-size: 11px; font-weight: 800; letter-spacing: 1px;">
+                +EV ANALYTICS ENGINE <span style="color: #f87171; margin-left:10px;">• Bet on the chaos, not the perfection.</span>
+            </div>
         </div>
+        <a href="https://buymeacoffee.com/notjxck" class="pv-beer-btn" target="_blank">
+            <span>🍺</span> Support The Servers
+        </a>
     </div>
-    <a href="https://buymeacoffee.com/notjxck" class="pv-beer-btn" target="_blank">
-        <span>🍺</span> Support The Servers
-    </a>
 </div>
 """, unsafe_allow_html=True)
 
-# 3. Load bets with default bankroll for stats
+# 3. Load bets for stats
 bets, _ = get_cached_bets(100.0)
 
 num_edges = len(bets) if bets else 0
@@ -240,10 +253,12 @@ avg_val = (sum(b.get('EV %', 0) for b in bets) / num_edges) if num_edges > 0 els
 top_val = max([b.get('EV %', 0) for b in bets], default=0)
 
 st.markdown(f"""
-<div class="pv-stats">
-    <div class="pv-stat"><div class="pv-stat-num">{num_edges}</div><div class="pv-stat-lbl">Edges Found</div></div>
-    <div class="pv-stat"><div class="pv-stat-num">{avg_val:.1f}%</div><div class="pv-stat-lbl">Avg +EV</div></div>
-    <div class="pv-stat"><div class="pv-stat-num">+{top_val:.1f}%</div><div class="pv-stat-lbl">Highest Edge</div></div>
+<div class="pv-wrap">
+    <div class="pv-stats">
+        <div class="pv-stat"><div class="pv-stat-num">{num_edges}</div><div class="pv-stat-lbl">Edges Found</div></div>
+        <div class="pv-stat"><div class="pv-stat-num">{avg_val:.1f}%</div><div class="pv-stat-lbl">Avg +EV</div></div>
+        <div class="pv-stat"><div class="pv-stat-num">+{top_val:.1f}%</div><div class="pv-stat-lbl">Highest Edge</div></div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -266,7 +281,7 @@ with st.container(border=True):
         format="%.2f",
     )
 
-# Reload bets with actual bankroll for feed
+# Reload bets with actual bankroll
 bets, _ = get_cached_bets(bankroll)
 
 # 5. The Feed
@@ -315,4 +330,4 @@ if bets:
 
         feed_html.append(card)
 
-    st.markdown(f'<div style="max-width:1000px; margin:0 auto; padding:0 20px;">{"".join(feed_html)}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="pv-wrap">{"".join(feed_html)}</div>', unsafe_allow_html=True)
