@@ -236,6 +236,9 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+bankroll = 100.0
+bets, _ = get_cached_bets(bankroll)
+
 # 3. Stats Row
 num_edges = len(bets) if bets else 0
 avg_val = (sum(b.get('EV %', 0) for b in bets) / num_edges) if num_edges > 0 else 0
