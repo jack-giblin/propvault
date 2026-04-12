@@ -258,19 +258,30 @@ st.markdown(f"""
 with st.container():
     st.markdown('<div style="max-width:1000px; margin: 0 auto 30px; padding: 0 20px;">', unsafe_allow_html=True)
 
-    # 👇 Card wrapper START
+#Kelly Calculator
+st.markdown("""
+<style>
+[data-testid="stVerticalBlockBorderWrapper"] {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border: 1px solid #1e293b !important;
+    border-radius: 24px !important;
+    padding: 28px !important;
+    max-width: 1000px !important;
+    margin: 0 auto 30px !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+with st.container(border=True):
     st.markdown("""
-    <div class="card" style="padding:16px 20px 20px 20px;">
-        <h3 style="color:#38cdff; margin:0 0 10px 0; font-size:18px; font-weight:900;">
+        <h3 style="color:#38cdff; margin:0 0 6px 0; font-size:18px; font-weight:900;">
             📊 Kelly Bankroll Calculator
         </h3>
-        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 12px 0;">
-            Enter your available <span style="color:#ffffff; font-weight:800;">Novig balance</span> to see half-Kelly suggested bet sizes.
+        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 16px 0;">
+            Enter your available <span style="color:#ffffff; font-weight:800;">Novig balance</span> to see half-Kelly suggested bet sizes on each edge below.
         </p>
     """, unsafe_allow_html=True)
-
-    # 👇 Input (NOW visually grouped because same container)
-    col1, col2, col3 = st.columns([1,2,1])
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         bankroll = st.number_input(
             "Available Bankroll ($)",
@@ -280,9 +291,6 @@ with st.container():
             step=10.0,
             format="%.2f",
         )
-
-    # 👇 Card wrapper END
-    st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
     
 # Load cached data
