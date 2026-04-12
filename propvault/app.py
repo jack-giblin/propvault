@@ -205,31 +205,6 @@ def fetch_scores():
 # Auto-refresh UI
 st_autorefresh(interval=1800000, key="refresh_tick")
 
-# 4. Bankroll Input (before cache call so it feeds Kelly)
-st.markdown("""
-<div style="max-width:1000px; margin: 30px auto 0; padding: 0 20px;">
-    <div class="card">
-        <h3 style="color:#38cdff; margin:0 0 10px 0; font-size:18px; font-weight:900;">
-            📊 Kelly Bankroll Calculator
-        </h3>
-        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 4px 0;">
-            Enter your available <span style="color:#ffffff; font-weight:800;">Novig balance</span> to see half-Kelly suggested bet sizes on each edge below.
-        </p>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-col1, col2, col3 = st.columns([1, 2, 1])
-with col2:
-    bankroll = st.number_input(
-        "Available Bankroll ($)",
-        min_value=10.0,
-        max_value=100000.0,
-        value=100.0,
-        step=10.0,
-        format="%.2f",
-    )
-
 # Load cached data
 bets, _ = get_cached_bets(bankroll)
 
@@ -337,6 +312,34 @@ st.markdown("""
     </div>
 </div>
 """, unsafe_allow_html=True)
+
+# 4. Bankroll Input (before cache call so it feeds Kelly)
+st.markdown("""
+<div style="max-width:1000px; margin: 30px auto 0; padding: 0 20px;">
+    <div class="card">
+        <h3 style="color:#38cdff; margin:0 0 10px 0; font-size:18px; font-weight:900;">
+            📊 Kelly Bankroll Calculator
+        </h3>
+        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 4px 0;">
+            Enter your available <span style="color:#ffffff; font-weight:800;">Novig balance</span> to see half-Kelly suggested bet sizes on each edge below.
+        </p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    bankroll = st.number_input(
+        "Available Bankroll ($)",
+        min_value=10.0,
+        max_value=100000.0,
+        value=100.0,
+        step=10.0,
+        format="%.2f",
+    )
+
+# Load cached data
+bets, _ = get_cached_bets(bankroll)
 
 # 5. The Feed
 if bets:
