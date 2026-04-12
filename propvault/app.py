@@ -136,8 +136,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 .under-theme { background: #064e3b; color: #34d399; }
 .over-theme { background: #450a0a; color: #f87171; }
 
-/* ── Kelly Container ── */
-[data-testid="stVerticalBlockBorderWrapper"] > div {
+[data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"] > div {
     background: rgba(15, 23, 42, 0.6) !important;
     border: 1px solid #1e293b !important;
     border-radius: 24px !important;
@@ -151,6 +150,10 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     border: 1px solid #1e293b !important;
     color: #e2e8f0 !important;
     border-radius: 10px !important;
+}
+
+[data-testid="stVerticalBlockBorderWrapper"] > div > div {
+    padding-bottom: 0 !important;
 }
 
 @media (max-width: 600px) {
