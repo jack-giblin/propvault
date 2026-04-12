@@ -309,6 +309,7 @@ with center_col:
 bets, _ = get_cached_bets(bankroll)
 
 # 5. The Feed
+
 if bets:
     sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
     feed_html = []
@@ -354,4 +355,6 @@ if bets:
 
         feed_html.append(card)
 
-  st.markdown("".join(feed_html), unsafe_allow_html=True)
+    # Indented exactly 4 spaces to match the 'if bets:' level
+    # Added pv-wrap to ensure the feed is centered like the header/stats
+    st.markdown(f'<div class="pv-wrap">{"".join(feed_html)}</div>', unsafe_allow_html=True)
