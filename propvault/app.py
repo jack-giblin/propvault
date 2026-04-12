@@ -205,33 +205,6 @@ def fetch_scores():
 # Auto-refresh UI
 st_autorefresh(interval=1800000, key="refresh_tick")
 
-# 4. Bankroll Input (before cache call so it feeds Kelly)
-st.markdown("""
-<div style="max-width:1000px; margin: 30px auto 0; padding: 0 20px;">
-    <div class="card">
-        <h3 style="color:#38cdff; margin:0 0 10px 0; font-size:18px; font-weight:900;">
-            📊 Kelly Bankroll Calculator
-        </h3>
-        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 4px 0;">
-            Enter your available <span style="color:#ffffff; font-weight:800;">Novig balance</span> to see half-Kelly suggested bet sizes on each edge below.
-        </p>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-col1, col2, col3 = st.columns([1, 2, 1])
-with col2:
-    bankroll = st.number_input(
-        "Available Bankroll ($)",
-        min_value=10.0,
-        max_value=100000.0,
-        value=100.0,
-        step=10.0,
-        format="%.2f",
-    )
-
-# Load cached data
-bets, _ = get_cached_bets(bankroll)
 
 # ── RENDER ──
 
@@ -276,67 +249,96 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# 4. Strategy Guide
+# 4. Bankroll Input (before cache call so it feeds Kelly)
 st.markdown("""
-<style>
-@keyframes pulse {
-    0% { opacity: 0.6; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.05); }
-    100% { opacity: 0.6; transform: scale(1); }
-}
-
-@keyframes glow {
-    0% { box-shadow: 0 0 5px rgba(248,113,113,0.2); }
-    50% { box-shadow: 0 0 18px rgba(248,113,113,0.6); }
-    100% { box-shadow: 0 0 5px rgba(248,113,113,0.2); }
-}
-
-.under-badge {
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    padding:4px 10px;
-    border-radius:999px;
-    background: rgba(248,113,113,0.15);
-    color:#f87171;
-    font-size:12px;
-    font-weight:800;
-    animation: pulse 1.8s infinite;
-}
-
-.card-animated {
-    border-left: 4px solid #f87171;
-    animation: glow 2.5s infinite;
-}
-</style>
-<div style="max-width:1000px; margin: 0 auto 30px; padding: 0 20px;">
-    <div class="card card-animated">
-        <h3 style="color:#f87171; margin:0 0 10px 0; font-size:18px; font-weight:900;">
-            📉 The "Anti-Public" Strategy
+<div style="max-width:1000px; margin: 30px auto 0; padding: 0 20px;">
+    <div class="card">
+        <h3 style="color:#38cdff; margin:0 0 10px 0; font-size:18px; font-weight:900;">
+            📊 Kelly Bankroll Calculator
         </h3>
-        <div class="under-badge">
-            <span>📡</span>
-            UNDER MODE ACTIVE
-        </div>
-        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:12px 0;">
-            We specialize in <span style="color:#ffffff; font-weight:800;">UNDER bets only</span>.
-            When public perception inflates totals and player lines, markets drift above true expectation.
-            We target the correction phase — where <span style="color:#f87171; font-weight:800;">regression restores balance</span>.
-        </p>
-        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 10px 0;">
-            Every bet must pass strict filters:
-        </p>
-        <ul style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 12px 18px;">
-            <li>EV between <span style="color:#ffffff; font-weight:800;">1.5% and 8%</span></li>
-            <li>Minimum <span style="color:#ffffff; font-weight:800;">40% win probability</span></li>
-            <li>Only <span style="color:#f87171; font-weight:800;">under outcomes</span></li>
-        </ul>
-        <p style="color:#ffffff; font-size:14px; line-height:1.7; margin:0; font-style:italic;">
-            No noise. No hype. Only mispriced downside.
+        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 4px 0;">
+            Enter your available <span style="color:#ffffff; font-weight:800;">Novig balance</span> to see half-Kelly suggested bet sizes on each edge below.
         </p>
     </div>
 </div>
 """, unsafe_allow_html=True)
+
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    bankroll = st.number_input(
+        "Available Bankroll ($)",
+        min_value=10.0,
+        max_value=100000.0,
+        value=100.0,
+        step=10.0,
+        format="%.2f",
+    )
+
+# Load cached data
+bets, _ = get_cached_bets(bankroll)
+
+if False:
+# 4. Strategy Guide
+    st.markdown("""
+    <style>
+    @keyframes pulse {
+        0% { opacity: 0.6; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.05); }
+        100% { opacity: 0.6; transform: scale(1); }
+    }
+    
+    @keyframes glow {
+        0% { box-shadow: 0 0 5px rgba(248,113,113,0.2); }
+        50% { box-shadow: 0 0 18px rgba(248,113,113,0.6); }
+        100% { box-shadow: 0 0 5px rgba(248,113,113,0.2); }
+    }
+    
+    .under-badge {
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding:4px 10px;
+        border-radius:999px;
+        background: rgba(248,113,113,0.15);
+        color:#f87171;
+        font-size:12px;
+        font-weight:800;
+        animation: pulse 1.8s infinite;
+    }
+    
+    .card-animated {
+        border-left: 4px solid #f87171;
+        animation: glow 2.5s infinite;
+    }
+    </style>
+    <div style="max-width:1000px; margin: 0 auto 30px; padding: 0 20px;">
+        <div class="card card-animated">
+            <h3 style="color:#f87171; margin:0 0 10px 0; font-size:18px; font-weight:900;">
+                📉 The "Anti-Public" Strategy
+            </h3>
+            <div class="under-badge">
+                <span>📡</span>
+                UNDER MODE ACTIVE
+            </div>
+            <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:12px 0;">
+                We specialize in <span style="color:#ffffff; font-weight:800;">UNDER bets only</span>.
+                When public perception inflates totals and player lines, markets drift above true expectation.
+                We target the correction phase — where <span style="color:#f87171; font-weight:800;">regression restores balance</span>.
+            </p>
+            <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 10px 0;">
+                Every bet must pass strict filters:
+            </p>
+            <ul style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 12px 18px;">
+                <li>EV between <span style="color:#ffffff; font-weight:800;">1.5% and 8%</span></li>
+                <li>Minimum <span style="color:#ffffff; font-weight:800;">40% win probability</span></li>
+                <li>Only <span style="color:#f87171; font-weight:800;">under outcomes</span></li>
+            </ul>
+            <p style="color:#ffffff; font-size:14px; line-height:1.7; margin:0; font-style:italic;">
+                No noise. No hype. Only mispriced downside.
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # 5. The Feed
 if bets:
