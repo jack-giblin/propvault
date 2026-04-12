@@ -257,32 +257,30 @@ st.markdown(f"""
 
 # 3b. Kelly Calculator
 st.markdown("""
-<div style="max-width:1000px; margin: 0 auto 10px; padding: 0 20px;">
-    <div class="card" style="padding-bottom: 8px;">
+<div style="max-width:1000px; margin: 0 auto 30px; padding: 0 20px;">
+    <div class="card" style="padding: 16px 20px 20px 20px;"> 
         <h3 style="color:#38cdff; margin:0 0 10px 0; font-size:18px; font-weight:900;">
             📊 Kelly Bankroll Calculator
         </h3>
-        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0;">
+        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 16px 0;">
             Enter your available <span style="color:#ffffff; font-weight:800;">Novig balance</span> to see half-Kelly suggested bet sizes on each edge below.
         </p>
+""", unsafe_allow_html=True)
+
+# 👇 THIS is now inside the same "card"
+bankroll = st.number_input(
+    "Available Bankroll ($)",
+    min_value=10.0,
+    max_value=100000.0,
+    value=100.0,
+    step=10.0,
+    format="%.2f",
+)
+
+st.markdown("""
     </div>
 </div>
 """, unsafe_allow_html=True)
-
-with st.container():
-    st.markdown('<div style="max-width:1000px; margin: -16px auto 30px; padding: 0 20px;">', unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        bankroll = st.number_input(
-            "Available Bankroll ($)",
-            min_value=10.0,
-            max_value=100000.0,
-            value=100.0,
-            step=10.0,
-            format="%.2f",
-        )
-    st.markdown('</div>', unsafe_allow_html=True)
-
 # Load cached data
 bets, _ = get_cached_bets(bankroll)
 
