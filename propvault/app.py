@@ -173,30 +173,6 @@ input[type="text"] {
     width: 100% !important;
 }
 
-/* 🔥 Clean number input (no +/- buttons, perfectly centered) */
-
-/* Container alignment fix */
-[data-testid="stNumberInput"] > div {
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-
-/* Input styling */
-[data-testid="stNumberInput"] input {
-    width: 100% !important;
-    background: #0f172a !important;
-    border: 1px solid #1e293b !important;
-    color: #e2e8f0 !important;
-    border-radius: 10px !important;
-    padding: 10px 12px !important;
-}
-
-/* ❌ Remove ugly +/- stepper */
-[data-testid="stNumberInput"] button {
-    display: none !important;
-}
-
 @media (max-width: 600px) {
     .pv-header { flex-direction: column; gap: 12px; }
     .pv-logo-name { font-size: 32px; }
