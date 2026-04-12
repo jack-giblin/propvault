@@ -168,9 +168,9 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 # 3. API Logic with 30-Minute Credit Protection
 
 @st.cache_data(ttl=1800)
-def get_cached_bets():
+def get_cached_bets(bankroll: float = 100.0):
     api_key = os.environ.get("ODDS_API_KEY", "")
-    return find_ev_bets(api_key)
+    return find_ev_bets(api_key, bankroll)
 
 
 @st.cache_data(ttl=300)
@@ -183,7 +183,6 @@ def fetch_scores():
                 f"{'baseball' if league=='mlb' else 'basketball'}/{league}/scoreboard",
                 timeout=5
             )
-
             if r.status_code == 200:
                 for event in r.json().get("events", []):
                     comp = event["competitions"][0]
@@ -203,11 +202,36 @@ def fetch_scores():
     return scores
 
 
-# Auto-refresh UI (UI only, does NOT trigger API calls)
+# Auto-refresh UI
 st_autorefresh(interval=1800000, key="refresh_tick")
 
-# Load cached data (shared across ALL users)
-bets, _ = get_cached_bets()
+# 4. Bankroll Input (before cache call so it feeds Kelly)
+st.markdown("""
+<div style="max-width:1000px; margin: 30px auto 0; padding: 0 20px;">
+    <div class="card">
+        <h3 style="color:#38cdff; margin:0 0 10px 0; font-size:18px; font-weight:900;">
+            📊 Kelly Bankroll Calculator
+        </h3>
+        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 4px 0;">
+            Enter your available <span style="color:#ffffff; font-weight:800;">Novig balance</span> to see half-Kelly suggested bet sizes on each edge below.
+        </p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    bankroll = st.number_input(
+        "Available Bankroll ($)",
+        min_value=10.0,
+        max_value=100000.0,
+        value=100.0,
+        step=10.0,
+        format="%.2f",
+    )
+
+# Load cached data
+bets, _ = get_cached_bets(bankroll)
 
 # ── RENDER ──
 
@@ -219,7 +243,6 @@ if scores:
         f'<span style="color:#cbd5e1; margin-left:5px;">{s["status"]}</span></span>'
         for s in scores
     ])
-
     st.markdown(
         f'<div class="scores-bar"><div class="scores-track">{chips * 3}</div></div>',
         unsafe_allow_html=True
@@ -268,11 +291,6 @@ st.markdown("""
     100% { box-shadow: 0 0 5px rgba(248,113,113,0.2); }
 }
 
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
 .under-badge {
     display:inline-flex;
     align-items:center;
@@ -286,11 +304,6 @@ st.markdown("""
     animation: pulse 1.8s infinite;
 }
 
-.alarm-icon {
-    display:inline-block;
-    animation: spin 3s linear infinite;
-}
-
 .card-animated {
     border-left: 4px solid #f87171;
     animation: glow 2.5s infinite;
@@ -302,7 +315,7 @@ st.markdown("""
             📉 The "Anti-Public" Strategy
         </h3>
         <div class="under-badge">
-            <span class="alarm-icon">🚨</span>
+            <span>📡</span>
             UNDER MODE ACTIVE
         </div>
         <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:12px 0;">
@@ -325,33 +338,31 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# 5. The Feed (Mapped to Engine Output)
+# 5. The Feed
 if bets:
     sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
     feed_html = []
-    
+
     for i, b in enumerate(sorted_bets):
-        # ── Data Mapping from Engine ──
-        b_side_full = b.get('Side', 'Under 0.0')  # Engine gives "Under 4.5"
-        b_target_odds = b.get('Target Odds', '-') # Novig price (the bet)
-        b_fair_odds = b.get('Fair Odds', '-')     # Pinnacle de-vigged / sharp ref
-        b_l5 = b.get('L5')                        # "L5 avg: 6.2 K"
-        
+        b_side_full = b.get('Side', 'Under 0.0')
+        b_target_odds = b.get('Target Odds', '-')
+        b_fair_odds = b.get('Fair Odds', '-')
+        b_l5 = b.get('L5')
+        b_kelly = b.get('Kelly (Half)', '$0.00')
+
         b_theme = "under-theme" if "Under" in b_side_full else "over-theme"
-        
-        # L5 Stats Injection
+
         l5_display = f'<div style="color:#7dd3fc; font-size:13px; font-weight:800; margin: 8px 0;">{b_l5}</div>' if b_l5 else ""
-        
-        # ── Comparison Row: Novig vs Pinnacle ──
+
         comparison_bar = f"""
-        <div style="display: flex; gap: 20px; margin-top: 12px; border-top: 1px solid #1e293b; padding-top: 10px;">
+        <div style="display: flex; gap: 20px; margin-top: 12px; border-top: 1px solid #1e293b; padding-top: 10px; flex-wrap: wrap;">
             <div style="font-size: 16px; color: #cbd5e1; font-weight:700;">NOVIG LINE: <span style="color: #38cdff;">{b_target_odds}</span></div>
             <div style="font-size: 16px; color: #cbd5e1; font-weight:700;">PINNACLE (SHARP): <span style="color: #f8fafc;">{b_fair_odds}</span></div>
+            <div style="font-size: 16px; color: #cbd5e1; font-weight:700;">HALF KELLY: <span style="color: #34d399;">{b_kelly}</span></div>
         </div>
         """
 
         if i == 0:
-            # Highlighted Critical Anomaly
             card = f'<div class="card" style="border: 1px solid #f87171; position: relative; overflow: hidden;">' \
                    f'<div style="position: absolute; right: -10px; top: -10px; font-size: 100px; opacity: 0.10;">📉</div>' \
                    f'<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; position: relative; z-index:1;">' \
@@ -364,7 +375,6 @@ if bets:
                    f'<div style="font-size: 11px; color: #cbd5e1; font-weight: 800;">EV Percentage</div></div></div>' \
                    f'{comparison_bar}</div>'
         else:
-            # Standard List Item
             card = f'<div class="card">' \
                    f'<div style="display:flex; flex-wrap: wrap; justify-content:space-between; align-items:center;">' \
                    f'<div><div style="font-size:24px; font-weight:900;">{b.get("Player")} <span class="strategy-badge {b_theme}" style="margin-left:10px;">{b_side_full.upper()}</span></div>' \
@@ -372,7 +382,7 @@ if bets:
                    f'{l5_display}</div>' \
                    f'<div style="color:#38cdff; font-size:38px; font-weight:900;">+{b.get("EV %")}%</div></div>' \
                    f'{comparison_bar}</div>'
-        
+
         feed_html.append(card)
 
     st.markdown(f'<div style="max-width:1000px; margin:0 auto; padding:0 20px;">{"".join(feed_html)}</div>', unsafe_allow_html=True)
