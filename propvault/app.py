@@ -163,6 +163,16 @@ section[data-testid="stMain"] > div {
     padding-bottom: 0 !important;
 }
 
+/* 🔥 Clean bankroll input (replaces number_input entirely) */
+input[type="text"] {
+    background: #0f172a !important;
+    border: 1px solid #1e293b !important;
+    color: #e2e8f0 !important;
+    border-radius: 10px !important;
+    padding: 10px 12px !important;
+    width: 100% !important;
+}
+
 /* 🔥 Clean number input (no +/- buttons, perfectly centered) */
 
 /* Container alignment fix */
@@ -295,14 +305,17 @@ with st.container(border=True):
             Enter your available <span style="color:#ffffff; font-weight:800;">Novig balance</span> to see half-Kelly suggested bet sizes on each edge below.
         </p>
     """, unsafe_allow_html=True)
-    bankroll = st.number_input(
+
+    bankroll_input = st.text_input(
         "Available Bankroll ($)",
-        min_value=10.0,
-        max_value=100000.0,
-        value=100.0,
-        step=10.0,
-        format="%.2f",
+        value="100.00"
     )
+
+    # 🔥 Safe parsing (prevents crashes)
+    try:
+        bankroll = float(bankroll_input.replace(",", ""))
+    except:
+        bankroll = 0.0
 
 # Reload bets with actual bankroll
 bets, _ = get_cached_bets(bankroll)
