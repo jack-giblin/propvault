@@ -147,19 +147,27 @@ section[data-testid="stMain"] > div {
 .under-theme { background: #064e3b; color: #34d399; }
 .over-theme { background: #450a0a; color: #f87171; }
 
-/* ── Kelly container ── */
+/* ── Kelly container Fix ── */
+[data-testid="stVerticalBlockBorderWrapper"] {
+    display: flex !important;
+    justify-content: center !important;
+    width: 100% !important;
+}
+
 [data-testid="stVerticalBlockBorderWrapper"] > div {
     background: rgba(15, 23, 42, 0.6) !important;
     border: 1px solid #1e293b !important;
     border-radius: 24px !important;
     padding: 28px !important;
-    max-width: 852px !important;
+    /* Match this exactly to your .pv-wrap max-width */
+    max-width: 900px !important; 
     width: 100% !important;
     margin: 0 auto 24px !important;
     box-sizing: border-box !important;
 }
 
-[data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"] > div > div {
+/* Remove internal padding-bottom to keep the card tight */
+[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock"] > div {
     padding-bottom: 0 !important;
 }
 
@@ -272,34 +280,38 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # 4. Kelly Calculator
-with st.container(border=True):
-    st.markdown("""
-        <h3 style="color:#38cdff; margin:0 0 6px 0; font-size:18px; font-weight:900;">
-            📊 Kelly Bankroll Calculator
-        </h3>
-        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 4px 0;">
-            Enter your available <span style="color:#ffffff; font-weight:800;">Novig balance</span> to see half-Kelly suggested bet sizes on each edge below.
-        </p>
-    """, unsafe_allow_html=True)
+_, center_col, _ = st.columns([1, 8, 1]) 
 
-    bankroll_input = st.text_input(
-        "Available Bankroll ($)",
-        value="100.00"
-    )
+with center_col:
+    # Kelly Calculator
+    with st.container(border=True):
+        st.markdown("""
+            <h3 style="color:#38cdff; margin:0 0 6px 0; font-size:18px; font-weight:900;">
+                📊 Kelly Bankroll Calculator
+            </h3>
+            <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 4px 0;">
+                Enter your available <span style="color:#ffffff; font-weight:800;">Novig balance</span> to see half-Kelly suggested bet sizes on each edge below.
+            </p>
+        """, unsafe_allow_html=True)
 
-    # 🔥 Safe parsing (prevents crashes)
-    try:
-        bankroll = float(bankroll_input.replace(",", ""))
-    except:
-        bankroll = 0.0
+        bankroll_input = st.text_input(
+            "Available Bankroll ($)",
+            value="100.00",
+            label_visibility="collapsed" # Hides the redundant label for a cleaner look
+        )
+
+        try:
+            bankroll = float(bankroll_input.replace(",", ""))
+        except:
+            bankroll = 0.0
 
 # Reload bets with actual bankroll
 bets, _ = get_cached_bets(bankroll)
 
 # 5. The Feed
 if bets:
-    sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
-    feed_html = []
+        sorted_bets = sorted(bets, key=lambda x: x.get("EV %", 0), reverse=True)
+        feed_html = []
 
     for i, b in enumerate(sorted_bets):
         b_side_full = b.get('Side', 'Under 0.0')
@@ -342,4 +354,4 @@ if bets:
 
         feed_html.append(card)
 
-    st.markdown(f'<div class="pv-wrap">{"".join(feed_html)}</div>', unsafe_allow_html=True)
+  st.markdown("".join(feed_html), unsafe_allow_html=True)
