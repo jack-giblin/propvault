@@ -1,7 +1,6 @@
 import os
 import requests
 import streamlit as st
-import textwrap
 from ev_engine import find_ev_bets
 from streamlit_autorefresh import st_autorefresh
 
@@ -21,6 +20,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 
 [data-testid="stHeader"] { background: transparent !important; }
 .block-container { padding: 0 !important; max-width: 100% !important; }
+[data-testid="stStatusWidget"] { display: none !important; }
 
 /* ── Live scores ticker ── */
 .scores-bar {
@@ -136,42 +136,40 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 .under-theme { background: #064e3b; color: #34d399; }
 .over-theme { background: #450a0a; color: #f87171; }
 
-@media (max-width: 600px) {
-    .pv-header {
-        flex-direction: column;
-        gap: 12px;
-    }
-    .pv-logo-name {
-        font-size: 32px;
-    }
-    .pv-stats {
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-    .pv-stat-num {
-        font-size: 28px;
-    }
-    .card {
-        flex-direction: column;
-        align-items: flex-start !important;
-        gap: 12px;
-    }
-    .strategy-badge {
-        font-size: 14px !important;
-        padding: 4px 10px !important;
-    }
+/* ── Kelly Container ── */
+[data-testid="stVerticalBlockBorderWrapper"] > div {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border: 1px solid #1e293b !important;
+    border-radius: 24px !important;
+    max-width: 1000px !important;
+    margin: 0 auto 30px !important;
+    padding: 28px !important;
 }
 
+[data-testid="stNumberInput"] input {
+    background: #0f172a !important;
+    border: 1px solid #1e293b !important;
+    color: #e2e8f0 !important;
+    border-radius: 10px !important;
+}
+
+@media (max-width: 600px) {
+    .pv-header { flex-direction: column; gap: 12px; }
+    .pv-logo-name { font-size: 32px; }
+    .pv-stats { grid-template-columns: 1fr; gap: 10px; }
+    .pv-stat-num { font-size: 28px; }
+    .card { flex-direction: column; align-items: flex-start !important; gap: 12px; }
+    .strategy-badge { font-size: 14px !important; padding: 4px 10px !important; }
+}
 </style>
 """, unsafe_allow_html=True)
 
-# 3. API Logic with 30-Minute Credit Protection
+# 3. Cache Functions
 
 @st.cache_data(ttl=1800)
 def get_cached_bets(bankroll: float = 100.0):
     api_key = os.environ.get("ODDS_API_KEY", "")
     return find_ev_bets(api_key, bankroll)
-
 
 @st.cache_data(ttl=300)
 def fetch_scores():
@@ -201,12 +199,8 @@ def fetch_scores():
         pass
     return scores
 
-
-# Auto-refresh UI
+# Auto-refresh
 st_autorefresh(interval=1800000, key="refresh_tick")
-
-# Load cached data
-bets, _ = get_cached_bets(bankroll)
 
 # ── RENDER ──
 
@@ -238,7 +232,9 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# 3. Stats Row
+# 3. Load bets with default bankroll for stats
+bets, _ = get_cached_bets(100.0)
+
 num_edges = len(bets) if bets else 0
 avg_val = (sum(b.get('EV %', 0) for b in bets) / num_edges) if num_edges > 0 else 0
 top_val = max([b.get('EV %', 0) for b in bets], default=0)
@@ -251,84 +247,16 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# 4. Strategy Guide
-st.markdown("""
-<style>
-@keyframes pulse {
-    0% { opacity: 0.6; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.05); }
-    100% { opacity: 0.6; transform: scale(1); }
-}
-
-@keyframes glow {
-    0% { box-shadow: 0 0 5px rgba(248,113,113,0.2); }
-    50% { box-shadow: 0 0 18px rgba(248,113,113,0.6); }
-    100% { box-shadow: 0 0 5px rgba(248,113,113,0.2); }
-}
-
-.under-badge {
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    padding:4px 10px;
-    border-radius:999px;
-    background: rgba(248,113,113,0.15);
-    color:#f87171;
-    font-size:12px;
-    font-weight:800;
-    animation: pulse 1.8s infinite;
-}
-
-.card-animated {
-    border-left: 4px solid #f87171;
-    animation: glow 2.5s infinite;
-}
-</style>
-<div style="max-width:1000px; margin: 0 auto 30px; padding: 0 20px;">
-    <div class="card card-animated">
-        <h3 style="color:#f87171; margin:0 0 10px 0; font-size:18px; font-weight:900;">
-            📉 The "Anti-Public" Strategy
-        </h3>
-        <div class="under-badge">
-            <span>📡</span>
-            UNDER MODE ACTIVE
-        </div>
-        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:12px 0;">
-            We specialize in <span style="color:#ffffff; font-weight:800;">UNDER bets only</span>.
-            When public perception inflates totals and player lines, markets drift above true expectation.
-            We target the correction phase — where <span style="color:#f87171; font-weight:800;">regression restores balance</span>.
-        </p>
-        <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 10px 0;">
-            Every bet must pass strict filters:
-        </p>
-        <ul style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 12px 18px;">
-            <li>EV between <span style="color:#ffffff; font-weight:800;">1.5% and 8%</span></li>
-            <li>Minimum <span style="color:#ffffff; font-weight:800;">40% win probability</span></li>
-            <li>Only <span style="color:#f87171; font-weight:800;">under outcomes</span></li>
-        </ul>
-        <p style="color:#ffffff; font-size:14px; line-height:1.7; margin:0; font-style:italic;">
-            No noise. No hype. Only mispriced downside.
-        </p>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# 4. Bankroll Input (before cache call so it feeds Kelly)
-st.markdown("""
-<div style="max-width:1000px; margin: 30px auto 0; padding: 0 20px;">
-    <div class="card">
-        <h3 style="color:#38cdff; margin:0 0 10px 0; font-size:18px; font-weight:900;">
+# 4. Kelly Calculator
+with st.container(border=True):
+    st.markdown("""
+        <h3 style="color:#38cdff; margin:0 0 6px 0; font-size:18px; font-weight:900;">
             📊 Kelly Bankroll Calculator
         </h3>
         <p style="color:#cbd5e1; font-size:14px; line-height:1.7; margin:0 0 4px 0;">
             Enter your available <span style="color:#ffffff; font-weight:800;">Novig balance</span> to see half-Kelly suggested bet sizes on each edge below.
         </p>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-col1, col2, col3 = st.columns([1, 2, 1])
-with col2:
+    """, unsafe_allow_html=True)
     bankroll = st.number_input(
         "Available Bankroll ($)",
         min_value=10.0,
@@ -338,7 +266,7 @@ with col2:
         format="%.2f",
     )
 
-# Load cached data
+# Reload bets with actual bankroll for feed
 bets, _ = get_cached_bets(bankroll)
 
 # 5. The Feed
@@ -354,7 +282,6 @@ if bets:
         b_kelly = b.get('Kelly (Half)', '$0.00')
 
         b_theme = "under-theme" if "Under" in b_side_full else "over-theme"
-
         l5_display = f'<div style="color:#7dd3fc; font-size:13px; font-weight:800; margin: 8px 0;">{b_l5}</div>' if b_l5 else ""
 
         comparison_bar = f"""
