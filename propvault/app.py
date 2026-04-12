@@ -162,6 +162,9 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     }
 }
 
+[data-testid="stStatusWidget"] {
+    display: none !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
